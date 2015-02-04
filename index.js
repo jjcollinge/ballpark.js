@@ -6,7 +6,6 @@
  
 // dependencies
 var ballpark = require('./ballpark');
-var handler = require("./handler");
 
 var handle = {
     "/" : function(query, resp) {
