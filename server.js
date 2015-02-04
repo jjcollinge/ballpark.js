@@ -17,7 +17,6 @@ Server.prototype.start = function(port, callback) {
     }
 
     return http.createServer(callback).listen(port);
-    console.log("Server started");
 }
 
 Server.prototype.stop = function() {

@@ -8,12 +8,16 @@
 var ballpark = require('./ballpark');
 var app = ballpark();
 
-var handle = {
-    "/" : function(query, resp) {
-        resp.writeHead(200, {"Content-Type": "text/plain"} );
-        resp.write("Called the handle");
-    	resp.end();
-    }
-}
+app.get("/", function(req, res) {
+    res.writeHead(200, {"Content-Type": "text/plain"});
+    res.write("Called the root handle");
+    res.end();
+});
 
-app.start(process.env.PORT, handle);
+app.get("/test", function(req, res) {
+    res.writeHead(200, {"Content-Type": "text/plain"} );
+    res.write("Called the test handle");
+	res.end();
+});
+
+app.start(process.env.PORT);
