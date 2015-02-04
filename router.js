@@ -1,3 +1,10 @@
+/**
+ * The Router is responsible for passing
+ * the query parameters and the response
+ * to the relevant handler function for
+ * the given request
+ */
+ 
 exports.route = function(handle, pathname, query, resp) {
 
 	var handler = handle[pathname];

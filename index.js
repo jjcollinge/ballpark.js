@@ -6,6 +6,7 @@
  
 // dependencies
 var ballpark = require('./ballpark');
+var app = ballpark();
 
 var handle = {
     "/" : function(query, resp) {
@@ -15,4 +16,4 @@ var handle = {
     }
 }
 
-ballpark.start(handle);
+app.start(process.env.PORT, handle);

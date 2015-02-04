@@ -7,25 +7,11 @@
  */
  
 // dependencies
-var http = require("http");
-var url = require("url");
-var router = require("./router");
+var App = require("./app");
 
+exports = module.exports = createApplication;
 
-exports.start = function(handle, port) {
-    
-   if(port == undefined) {
-        process.env.PORT? port = process.env.PORT: port = 3000;
-    }
-    
-    var route = router.route;
-    
-    function start(req, res) {
-        var url_parse = url.parse(req.url);
-        route(handle, url_parse.pathname, url_parse.query, res);
-    }
-    
-    // each time there is a request the function passed will be called
-    return http.createServer(start).listen(port);
+function createApplication() {
+    var app = new App();
+    return app;
 }
-
