@@ -8,16 +8,17 @@
 var ballpark = require('./ballpark');
 var app = ballpark();
 
-app.get("/", function(req, res) {
-    res.writeHead(200, {"Content-Type": "text/plain"});
-    res.write("Called the root handle");
-    res.end();
+app.configure({
+    'XMLSupport': true,
+    'JSONSupport': true
 });
 
-app.get("/test", function(req, res) {
-    res.writeHead(200, {"Content-Type": "text/plain"} );
-    res.write("Called the test handle");
-	res.end();
+app.get("/", function(req, resp) {
+    resp.send("called handle on path: /");
+});
+
+app.get("/test", function(req, resp) {
+    resp.send("called handle on path: /test");
 });
 
 app.start(process.env.PORT);
