@@ -1,0 +1,34 @@
+{
+  "name": "ballpark_js",
+  "version": "0.0.1",
+  "description": "ballpark.js is a javascript framework built on top of node. It is designed to support geopgraphical information systems (GIS) by providing them with an extensible and lightweight framework which will handle the heavy lifting.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "jasmine-node": "^1.14.5",
+    "mongoose": "^3.8.22"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jjcollinge/ballpark.js.git"
+  },
+  "keywords": [
+    "gis",
+    "geolocation",
+    "geo",
+    "framework"
+  ],
+  "author": "JJCollinge",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jjcollinge/ballpark.js/issues"
+  },
+  "homepage": "https://github.com/jjcollinge/ballpark.js"
+}
