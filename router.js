@@ -5,13 +5,11 @@
  * the given request
  */
 
-exports.route = function(handle, query, res) {
+exports.route = function(handle, query, resp) {
 
 	if(typeof handle === "function") {
-		return handle(query, res);
+		return handle(query, resp);
 	} else {
-		res.writeHead(200, {"Content-Type": "application/json"} );
-        res.write(JSON.stringify({ error_code : 404, description : 'A handle for request is not available'}));
-    	res.end();
+		resp.statusCode(404).send({ status_code : 404, description : 'A handle for request is not available'});
 	}
 }

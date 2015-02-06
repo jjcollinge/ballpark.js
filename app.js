@@ -16,6 +16,10 @@ function App() {
     this.server = new Server();
     this.dao = new Dao();
     this.handles = {};
+    this.config = {
+        'XMLSupport' : false,
+        'JSONSupport': true
+    }
 }
 
 App.prototype.connectToDatabase = function(ip, callback) {
@@ -31,26 +35,35 @@ App.prototype.start = function(port) {
     function handleRequest(req, res) {
         var url_parse = url.parse(req.url);
         var handle = _this.handles[url_parse.pathname];
-        route(handle, url_parse.query, res);
+        var response = new Response(res);
+        route(handle, url_parse.query, response);
     }
     
     this.server.start(port, handleRequest);
 }
 
-App.prototype.get = function(path, handle) {
+App.prototype._method = function(path, handle) {
     this.handles[path] = handle;
+}
+
+App.prototype.get = function(path, handle) {
+    this._method(path, handle);
 }
 
 App.prototype.post = function(path, handle) {
-    this.handles[path] = handle;
+    this._method(path, handle);
 }
 
 App.prototype.put = function(path, handle) {
-    this.handles[path] = handle;
+    this._method(path, handle);
 }
 
 App.prototype.delete = function(path, handle) {
-    this.handles[path] = handle;
+    this._method(path, handle);
+}
+
+App.prototype.configure = function(configuration) {
+    this.config = configuration;
 }
 
 App.prototype.createNode = function(id, lon, lat, alt, acc) {
