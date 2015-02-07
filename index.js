@@ -7,12 +7,18 @@
 // Dependencies
 var ballpark = require('./ballpark');
 var app = ballpark();
+var dao = require("./dao");
+var util = require("./utility");
+var Node = require("./node");
+
+dao.connect('27017', process.env.IP, function(url) {
+        console.log('Connected to database: '+ url);
+    });
+
 
 app.configure({
-    'HTTPAddress': process.env.IP,
-    'HTTPPort': process.env.PORT,
-    'DatabaseAddress': process.env.IP,
-    'DatabasePort': '27017',
+    'Address': process.env.IP,
+    'Port': process.env.PORT,
     'XMLSupport' : false,
     'JSONSupport': true
 });
@@ -25,4 +31,6 @@ app.get("/test", function(req, resp) {
     resp.send("called handle on path: /test");
 });
 
-app.start(process.env.IP, process.env.PORT);
+app.start(function(url) {
+    console.log("Connected to server: " + url)
+});

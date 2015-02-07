@@ -52,17 +52,8 @@ DAO.prototype.connect = function(port, ip, callback) {
     });
 }
 
-// Move this
-DAO.prototype.createNode = function(_id, lon, lat, alt, acc) {
-    var model = this.models['Node'];
-    var node = new model({
-        id : _id,
-        longitude: lon,
-        latitude: lat,
-        altitude: alt,
-        accuracy: acc
-    });
-    return node;
+DAO.prototype.getModel = function(model) {
+    return this.models[model];
 }
 
 DAO.prototype.storeNode = function(node, callback) {

@@ -30,9 +30,7 @@ Response.prototype.send = function(message) {
     if(this.response.statusCode == undefined) this.response.statusCode = 404;
 
     var contentType = "text/plain";
-
-    console.log(typeof message);
-
+    
     switch (typeof message) {
         case 'string':
             contentType = "text/html";
