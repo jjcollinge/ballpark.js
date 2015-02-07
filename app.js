@@ -4,42 +4,49 @@
  * the client a single interface to use
  */
 
-// dependencies
+// Dependencies
 var Server = require('./server');
 var Response = require('./response');
 var Dao = require("./dao");
 var url = require("url");
 var router = require("./router");
 
-// constructor
 function App() {
     this.server = new Server();
     this.dao = new Dao();
     this.handles = {};
     this.config = {
+        'HTTPAddress': '127.0.0.1',
+        'HTTPPort': '8080',
+        'DatabaseAddress': '127.0.0.1',
+        'DatabasePort': '27017',
         'XMLSupport' : false,
         'JSONSupport': true
     }
 }
 
-App.prototype.connectToDatabase = function(ip, callback) {
-    this.dao.connect(ip, callback);
+App.prototype.configure = function(configuration) {
+    this.config = configuration;
 }
 
-App.prototype.start = function(port) {
+App.prototype.start = function() {
+    
+    this.dao.connect(this.config['DatabasePort'], this.config['DatabaseAddress'], function(url) {
+        console.log('Connected to database: '+ url);
+    });
     
     var route = router.route;
     
     var _this = this;
     
-    function handleRequest(req, res) {
+    function requestListener(req, res) {
         var url_parse = url.parse(req.url);
         var handle = _this.handles[url_parse.pathname];
         var response = new Response(res);
         route(handle, url_parse.query, response);
     }
     
-    this.server.start(port, handleRequest);
+    this.server.start(this.config['HTTPPort'], this.config['HTTPAddress'], requestListener);
 }
 
 App.prototype._method = function(path, handle) {
@@ -60,10 +67,6 @@ App.prototype.put = function(path, handle) {
 
 App.prototype.delete = function(path, handle) {
     this._method(path, handle);
-}
-
-App.prototype.configure = function(configuration) {
-    this.config = configuration;
 }
 
 App.prototype.createNode = function(id, lon, lat, alt, acc) {

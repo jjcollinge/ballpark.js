@@ -1,3 +1,11 @@
+/**
+ * The DAO wraps a MongoDB database and
+ * allows the rest of the application to
+ * perform persistent operations on their
+ * data elements
+ */
+
+// Dependencies
 var mongoose = require('mongoose');
 
 function DAO() {
@@ -5,16 +13,16 @@ function DAO() {
     this.models = {};
 }
 
-DAO.prototype.connect = function(ip, callback) {
-    var url = 'mongodb://' + ip +'/test';
+DAO.prototype.connect = function(port, ip, callback) {
     
+    var url = 'mongodb://' + ip +':' + port + '/test';
+
     var _this = this;
     
     mongoose.connect(url, function(err, res) {
         if(err) {
-            console.error('Failed to connect to MongoDB database on ip: ' + ip + " with error: " + err);
+            console.error('Failed to connect to MongoDB database on url: ' + url + " with error: " + err);
         } else {
-            console.log('Succesfully connected to MongoDB database on ip: ' + ip);
             
              // Define a node schema
             var nodeSchema = new mongoose.Schema({
@@ -39,12 +47,12 @@ DAO.prototype.connect = function(ip, callback) {
             _this.models['Node'] = mongoose.model('Node', nodeSchema);
             _this.models['Way'] = mongoose.model('Way', waySchema);
             
-            
-            callback();
+            callback(url);
         }
     });
 }
 
+// Move this
 DAO.prototype.createNode = function(_id, lon, lat, alt, acc) {
     var model = this.models['Node'];
     var node = new model({

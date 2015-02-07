@@ -6,7 +6,7 @@
  * manner.
  */
  
-// dependencies
+// Dependencies
 var App = require("./app");
 
 exports = module.exports = createApplication;

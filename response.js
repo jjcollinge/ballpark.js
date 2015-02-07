@@ -4,7 +4,7 @@
  * to add additional behaviour & data.
  */
 
-// dependencies
+// Dependencies
 var http = require("http");
 
 function Response(res) {
