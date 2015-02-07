@@ -1,6 +1,7 @@
 /**
  * Way represents at least 2 geographically points
  */
+ 
 function Way() {
     this.nodes = {};
 }

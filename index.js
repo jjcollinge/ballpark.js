@@ -8,13 +8,10 @@
 var ballpark = require('./ballpark');
 var app = ballpark();
 var dao = require("./dao");
-var util = require("./utility");
-var Node = require("./node");
 
 dao.connect('27017', process.env.IP, function(url) {
         console.log('Connected to database: '+ url);
     });
-
 
 app.configure({
     'Address': process.env.IP,
