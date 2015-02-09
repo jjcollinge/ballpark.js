@@ -6,8 +6,13 @@
 var request = require("request");
  
 function Node(lon, lat) {
+    
+    if(lon === undefined && lat === undefined) {
+        throw new Error("longitude and latitude required to construct a node");
+    }
     this.lon = lon;
     this.lat = lat;
+    this.tags = {};
 }
 
 Node.prototype.addAltitude = function(alt) {
@@ -16,6 +21,10 @@ Node.prototype.addAltitude = function(alt) {
 
 Node.prototype.addAccuracy = function(acc) {
     this.acc = acc;
+}
+
+Node.prototype.addTag = function(key, value) {
+    this.tags[key] = value;
 }
 
 Node.prototype.attachIP = function(ip, callback) {

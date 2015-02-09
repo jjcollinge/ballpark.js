@@ -1,12 +1,17 @@
 /**
- * Test utility functions
+ * Test node data and process
  */
 
 // Dependencies
-var app = require("../../app");
 var Node = require("../../node");
 
-describe("calculate distance", function() {
+describe("constructing a node", function() {
+   it("should throw if it doesn't provide 2 arguments", function() {
+       expect(Node).toThrow();
+   });
+});
+
+describe("calculating distance between two nodes", function() {
     it("should calculate a distance of 157km", function() {
         var srcNode = new Node(0.0000, 0.0000);
         var desNode = new Node(1.0000, 1.0000);
@@ -21,7 +26,7 @@ describe("calculate distance", function() {
     });
 });
 
-describe("calculate current geo location", function() {
+describe("attaching an ip to a node", function() {
     it("should return my location", function() {
         var testNode = new Node(0, 0);
         testNode.attachIP("31.205.3.227", function() {
@@ -54,4 +59,12 @@ describe("calculate current geo location", function() {
         });
 
     });
-})
+});
+
+describe("adding a tag to a node", function() {
+   if("should attach a tag to the node", function() {
+       var testNode = new Node(0, 0);
+       testNode.addTag("name", "Surrey Street");
+       expect(testNode.tags[name]).toBe("Surrey Street");
+   });
+});
