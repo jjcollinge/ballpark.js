@@ -2,16 +2,30 @@
  * Way represents at least 2 geographically points
  */
  
-function Way(nodeA, nodeB) {
+function Way(node0, node1) {
     
     // minimum of 2 nodes in a way
     if(arguments.length != 2) {
         throw new Error("atleast 2 nodes required to construct a way");
     }
     this.nodes = [];
-    this.nodes.push(nodeA);
-    this.nodes.push(nodeB);
+    this.nodes.push(node0);
+    this.nodes.push(node1);
     this.max = 2000;
+    this.ways = [];
+    this.tags = {}
+}
+
+Way.prototype.addWay = function(way) {
+    this.ways.push(way);
+}
+
+Way.prototype.getWays = function() {
+    return this.ways;
+}
+
+Way.prototype.addTag = function(key, value) {
+    this.tags[key] = value;
 }
 
 Way.prototype.addNode = function(node) {
@@ -27,16 +41,39 @@ Way.prototype.removeNode = function(node) {
     }
 }
 
-Way.prototype.concat = function(way) {
-    this.nodes.push(way.getNodes());
-}
-
-Way.prototype.getSize = function(){
+Way.prototype.size = function() {
     return this.nodes.length;
 }
 
 Way.prototype.getNodes = function() {
     return this.nodes;
+}
+
+Way.prototype.has = function(node) {
+    return (this.nodes.indexOf(node) > -1);
+}
+
+Way.prototype.concat = function(way) {
+    var otherNodes = way.getNodes();
+    for(node in otherNodes) {
+        this.nodes.push(node);
+    }
+}
+
+Way.prototype.each = function(callback) {
+    return this.nodes.forEach(callback);
+}
+
+Way.prototype.reduce = function(callback) {
+    return this.nodes.reduce(callback);
+}
+
+Way.prototype.map = function(callback) {
+    return this.nodes.map(callback);
+}
+
+Way.prototype.filter = function(callback) {
+    return this.nodes.filter(callback);
 }
 
 module.exports = Way;

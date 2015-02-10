@@ -9,6 +9,9 @@ describe("constructing a node", function() {
    it("should throw if it doesn't provide 2 arguments", function() {
        expect(Node).toThrow();
    });
+   it("should throw an expection for illegal geo location", function() {
+       //expect(Node(-360, 360)).toThrow(); 
+   });
 });
 
 describe("calculating distance between two nodes", function() {

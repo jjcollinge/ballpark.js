@@ -8,12 +8,12 @@
 // Dependencies
 var mongoose = require('mongoose');
 
-function DAO() {
+function Dao() {
     this.db = mongoose.connection;
     this.models = {};
 }
 
-DAO.prototype.connect = function(port, ip, callback) {
+Dao.prototype.connect = function(port, ip, callback) {
     
     var url = 'mongodb://' + ip +':' + port + '/test';
 
@@ -52,18 +52,22 @@ DAO.prototype.connect = function(port, ip, callback) {
     });
 }
 
-DAO.prototype.getModel = function(model) {
-    return this.models[model];
-}
-
-DAO.prototype.storeNode = function(node, callback) {
-    node.save(function(err, node) {
+Dao.prototype.storeNode = function(node, callback) {
+    var model = this.models['Node'];
+    var dbNode = new model({
+       longitude: node.lon,
+       latitude: node.lat,
+       altitude: node.alt,
+       accuracy: node.acc,
+       tags: node.tags
+    });
+    dbNode.save(function(err, node) {
         if(err) return console.error(err);
     });
-    callback(node);
+    callback(dbNode);
 }
 
-DAO.prototype.findNodeById = function(_id, callback) {
+Dao.prototype.findNodeById = function(_id, callback) {
     var model = this.models['Node'];
     model.find({ id: _id }, function(err, matches) {
        if(err) return console.error(err);
@@ -71,7 +75,7 @@ DAO.prototype.findNodeById = function(_id, callback) {
     });
 }
 
-DAO.prototype.removeNode = function(node, callback) {
+Dao.prototype.removeNode = function(node, callback) {
     var model = this.models['Node'];
     model.remove({ id: node.id }, function(err, matches) {
            if(err) return console.error(err);
@@ -79,4 +83,4 @@ DAO.prototype.removeNode = function(node, callback) {
     });
 }
 
-module.exports = DAO;
+module.exports = Dao;

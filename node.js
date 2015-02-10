@@ -7,8 +7,10 @@ var request = require("request");
  
 function Node(lon, lat) {
     
-    if(lon === undefined && lat === undefined) {
+    if(lon === undefined || lat === undefined) {
         throw new Error("longitude and latitude required to construct a node");
+    } else if(lon < -180 || lon > 180 || lat < -180 || lon > 180) {
+        throw new Error("illegal geo location given");
     }
     this.lon = lon;
     this.lat = lat;
