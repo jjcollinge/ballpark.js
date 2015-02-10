@@ -37,7 +37,8 @@ Dao.prototype.connect = function(port, ip, callback) {
             // Define a way schema
             var waySchema = new mongoose.Schema({
                 id: { type: Number},
-                visible: { type: Boolean},
+                nodes: { type: Object },
+                ways: { type: Object },
                 tags : { type: Object }
             });
             
@@ -52,9 +53,12 @@ Dao.prototype.connect = function(port, ip, callback) {
     });
 }
 
+// ===============Node methods===================== //
+
 Dao.prototype.storeNode = function(node, callback) {
     var model = this.models['Node'];
     var dbNode = new model({
+       id: mongoose.Types.ObjectId(),
        longitude: node.lon,
        latitude: node.lat,
        altitude: node.alt,
@@ -67,6 +71,14 @@ Dao.prototype.storeNode = function(node, callback) {
     callback(dbNode);
 }
 
+Dao.prototype.removeNode = function(_id, callback) {
+    var model = this.models['Node'];
+    model.remove({ id: _id }, function(err, matches) {
+        if(err) return console.error(err);
+        callback(matches);
+    });
+}
+
 Dao.prototype.findNodeById = function(_id, callback) {
     var model = this.models['Node'];
     model.find({ id: _id }, function(err, matches) {
@@ -75,11 +87,34 @@ Dao.prototype.findNodeById = function(_id, callback) {
     });
 }
 
-Dao.prototype.removeNode = function(node, callback) {
-    var model = this.models['Node'];
-    model.remove({ id: node.id }, function(err, matches) {
-           if(err) return console.error(err);
-           callback(matches);
+// ===============Way methods===================== //
+
+Dao.prototype.storeWay = function(way, callback) {
+    var model = this.models['Way'];
+    var dbWay = new model({
+       id: mongoose.Types.ObjectId(),
+       nodes: way.nodes,
+       ways: way.ways,
+       tags: way.tags
+    });
+    dbWay.save(function(err, node) {
+        if(err) return console.error(err);
+    });
+}
+
+Dao.prototype.removeWay = function(_id, callback) {
+    var model = this.models['Way'];
+    model.remove({ id: _id }, function(err, matches) {
+        if(err) return console.error(err);
+        callback(matches);
+    });
+}
+
+Dao.prototype.findWayById = function(_id, callback) {
+    var model = this.models['Way'];
+    model.find({ id: _id }, function(err, matches) {
+       if(err) return console.error(err);
+       callback(matches);
     });
 }
 

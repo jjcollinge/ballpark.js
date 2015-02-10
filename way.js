@@ -8,6 +8,8 @@ function Way(node0, node1) {
     if(arguments.length != 2) {
         throw new Error("atleast 2 nodes required to construct a way");
     }
+    this.id;
+    this.idAttribute;
     this.nodes = [];
     this.nodes.push(node0);
     this.nodes.push(node1);
@@ -18,10 +20,6 @@ function Way(node0, node1) {
 
 Way.prototype.addWay = function(way) {
     this.ways.push(way);
-}
-
-Way.prototype.getWays = function() {
-    return this.ways;
 }
 
 Way.prototype.addTag = function(key, value) {
@@ -45,16 +43,12 @@ Way.prototype.size = function() {
     return this.nodes.length;
 }
 
-Way.prototype.getNodes = function() {
-    return this.nodes;
-}
-
 Way.prototype.has = function(node) {
     return (this.nodes.indexOf(node) > -1);
 }
 
 Way.prototype.concat = function(way) {
-    var otherNodes = way.getNodes();
+    var otherNodes = way.nodes;
     for(node in otherNodes) {
         this.nodes.push(node);
     }
@@ -65,7 +59,8 @@ Way.prototype.each = function(callback) {
 }
 
 Way.prototype.reduce = function(callback) {
-    return this.nodes.reduce(callback);
+    var result = this.nodes.reduce(callback);
+    return result;
 }
 
 Way.prototype.map = function(callback) {

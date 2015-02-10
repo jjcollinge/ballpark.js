@@ -12,7 +12,6 @@ var router = require("./router");
 
 function App() {
     this.server = new Server();
-    this.dao = new Dao();
     this.handles = {};
     this.config = {
         'Address': '127.0.0.1',
