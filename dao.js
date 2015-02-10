@@ -15,6 +15,10 @@ function Dao() {
 
 Dao.prototype.connect = function(port, ip, callback) {
     
+    if(this.db.readyState != 0) {
+        throw new Error("Database is currently busy");
+    }
+    
     var url = 'mongodb://' + ip +':' + port + '/test';
 
     var _this = this;
@@ -67,8 +71,8 @@ Dao.prototype.storeNode = function(node, callback) {
     });
     dbNode.save(function(err, node) {
         if(err) return console.error(err);
+        callback(dbNode);
     });
-    callback(dbNode);
 }
 
 Dao.prototype.removeNode = function(_id, callback) {

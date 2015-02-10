@@ -28,7 +28,6 @@ App.prototype.configure = function(configuration) {
 App.prototype.start = function(callback) {
     
     var route = router.route;
-    
     var _this = this;
     
     function requestListener(req, res) {
