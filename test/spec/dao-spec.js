@@ -7,17 +7,39 @@ var Dao = require("../../dao");
 var Way = require("../../way");
 var Node = require("../../node");
 
-describe("Testing dao for all models", function() {
-    var dao = new Dao();
-    dao.connect(27017, process.env.IP, function() {
-            console.log("Successfully connected to database");
-        });
+var dao = new Dao();
+dao.connect(27017, process.env.IP);
+
+var id;
     
-    it("should insert a node into the database", function() {
+describe("dao tests", function(){
+    
+    it("creating a node", function(done) {
         var node = new Node(0, 0);
-        dao.storeNode(node, function(n) {
-            console.log(n);
-            expect(n).toBeDefined();
+        var result;
+        dao.addNode(node, function(data) {
+            expect(data).toBeDefined();
+            id = data.id;
+            done();
+        });
+    });
+    it("updating a node", function(done) {
+        var update =  { latitude: 1};
+        dao.updateNode(id, update, function(data) {
+            expect(data).toBeDefined();
+            done();
+        });
+    });
+    it("find a node", function(done) {
+       dao.findNode(id, function(data) {
+            expect(data).toBeDefined();
+            done();
+       });
+    });
+    it("deleting a node", function(done) {
+        dao.deleteNode(id, function(data) {
+            expect(data).toBeDefined();
+            done();
         });
     });
 });

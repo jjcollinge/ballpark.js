@@ -10,7 +10,9 @@
     "jasmine-node": "^1.14.5",
     "mongoose": "^3.8.22"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "node-jasmine-async": "^0.1.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"

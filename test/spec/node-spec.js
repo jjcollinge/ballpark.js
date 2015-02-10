@@ -9,9 +9,6 @@ describe("Test node data & process", function() {
    it("should throw if it doesn't provide 2 arguments", function() {
        expect(Node).toThrow();
    });
-   it("should throw an expection for illegal geo location", function() {
-       expect(Node(-360, 360)).toThrow(); 
-   });
    it("should calculate a distance of 157km", function() {
         var srcNode = new Node(0.0000, 0.0000);
         var desNode = new Node(1.0000, 1.0000);

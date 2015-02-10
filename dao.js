@@ -8,60 +8,64 @@
 // Dependencies
 var mongoose = require('mongoose');
 
+var Schema = mongoose.Schema,
+ObjectId = Schema.ObjectId;
+
+// Define a node schema
+var nodeSchema = new mongoose.Schema({
+    id:         { type: ObjectId, required: true},
+    longitude:  { type: Number, required: true },
+    latitude:   { type: Number, required: true },
+    altitude:   { type: Number },
+    accuracy:   { type: Number },
+    tags:       { type: Object }
+});
+
+mongoose.model('Node', nodeSchema);
+var Node = mongoose.model('Node', nodeSchema);
+
+// Define a way schema
+var waySchema = new mongoose.Schema({
+    id:     { type: ObjectId, required: true },
+    nodes:  { type: Object, required: true },
+    ways:   { type: Object },
+    tags :  { type: Object }
+});
+
+mongoose.model('Way', nodeSchema);
+var Way = mongoose.model('Way', nodeSchema);
+
 function Dao() {
     this.db = mongoose.connection;
-    this.models = {};
 }
 
-Dao.prototype.connect = function(port, ip, callback) {
+Dao.prototype.connect = function(port, ip) {
     
     if(this.db.readyState != 0) {
         throw new Error("Database is currently busy");
     }
     
     var url = 'mongodb://' + ip +':' + port + '/test';
-
-    var _this = this;
     
     mongoose.connect(url, function(err, res) {
         if(err) {
             console.error('Failed to connect to MongoDB database on url: ' + url + " with error: " + err);
         } else {
-            
-             // Define a node schema
-            var nodeSchema = new mongoose.Schema({
-                id: { type: Number },
-                longitude: { type: Number },
-                latitude: { type: Number },
-                altitude: { type: Number },
-                accuracy: { type: Number },
-                tags: { type: Object }
-            });
-            
-            // Define a way schema
-            var waySchema = new mongoose.Schema({
-                id: { type: Number},
-                nodes: { type: Object },
-                ways: { type: Object },
-                tags : { type: Object }
-            });
-            
-            // Static helper functions
-            
-            // Compile schemas into models
-            _this.models['Node'] = mongoose.model('Node', nodeSchema);
-            _this.models['Way'] = mongoose.model('Way', waySchema);
-            
-            callback(url);
+            console.log("connected to database: " + url);
         }
     });
 }
 
-// ===============Node methods===================== //
+Dao.prototype.disconnect = function() {
+    this.db.close( function() {
+        console.log("disconnected from database");
+    });
+}
 
-Dao.prototype.storeNode = function(node, callback) {
-    var model = this.models['Node'];
-    var dbNode = new model({
+// ===============Node CRUD methods===================== //
+
+Dao.prototype.addNode = function(node, cb) {
+    var _node = new Node({
        id: mongoose.Types.ObjectId(),
        longitude: node.lon,
        latitude: node.lat,
@@ -69,56 +73,73 @@ Dao.prototype.storeNode = function(node, callback) {
        accuracy: node.acc,
        tags: node.tags
     });
-    dbNode.save(function(err, node) {
+    _node.save(function(err, data) {
         if(err) return console.error(err);
-        callback(dbNode);
+        else {
+            console.log("Created: " + data);
+            cb(data);
+        }
     });
 }
 
-Dao.prototype.removeNode = function(_id, callback) {
-    var model = this.models['Node'];
-    model.remove({ id: _id }, function(err, matches) {
+Dao.prototype.deleteNode = function(_id, cb) {
+    Node.remove({ id: _id }, function(err, data) {
         if(err) return console.error(err);
-        callback(matches);
+        else {
+            console.log("Deleted: " + data);
+            data.remove();
+            cb(data);
+        }
     });
 }
 
-Dao.prototype.findNodeById = function(_id, callback) {
-    var model = this.models['Node'];
-    model.find({ id: _id }, function(err, matches) {
-       if(err) return console.error(err);
-       callback(matches);
+Dao.prototype.updateNode = function(_id, update, cb) {
+    var opts;
+    Node.update({ id: _id }, update, opts, function(err, data) {
+        if(err) return console.error(err);
+        else {
+            console.log("Updated: " + data);
+            cb(data);
+        }
     });
 }
 
-// ===============Way methods===================== //
+Dao.prototype.findNode = function(_id, cb) {
+    Node.find({ id: _id }, function(err, data) {
+        if(err) return console.error(err);
+        else {
+            console.log("Found: " + data);
+            cb(data);
+        }
+    });
+}
 
-Dao.prototype.storeWay = function(way, callback) {
-    var model = this.models['Way'];
-    var dbWay = new model({
+// ===============Way CRUD methods===================== //
+
+Dao.prototype.addWay = function(way, callback) {
+    var way = new Way({
        id: mongoose.Types.ObjectId(),
        nodes: way.nodes,
        ways: way.ways,
        tags: way.tags
     });
-    dbWay.save(function(err, node) {
+    way.save(function(err, node) {
         if(err) return console.error(err);
+        else console.log("Saved: " + data);
     });
 }
 
 Dao.prototype.removeWay = function(_id, callback) {
-    var model = this.models['Way'];
-    model.remove({ id: _id }, function(err, matches) {
+    Way.remove({ id: _id }, function(err, data) {
         if(err) return console.error(err);
-        callback(matches);
+        data.remove();
     });
 }
 
 Dao.prototype.findWayById = function(_id, callback) {
-    var model = this.models['Way'];
-    model.find({ id: _id }, function(err, matches) {
+    Way.find({ id: _id }, function(err, data) {
        if(err) return console.error(err);
-       callback(matches);
+       data.remove();
     });
 }
 
