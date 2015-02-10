@@ -41,11 +41,11 @@ function Dao() {
 
 Dao.prototype.connect = function(port, ip) {
     
-    if(this.db.readyState != 0) {
-        throw new Error("Database is currently busy");
-    }
-    
     var url = 'mongodb://' + ip +':' + port + '/test';
+    
+    if(this.db.readyState !== 0) {
+        return this;
+    }
     
     mongoose.connect(url, function(err, res) {
         if(err) {
@@ -57,9 +57,14 @@ Dao.prototype.connect = function(port, ip) {
 }
 
 Dao.prototype.disconnect = function() {
-    this.db.close( function() {
+    mongoose.connection.db.executeDbCommand({
+		dropDatabase: 1
+	}, function(err, result) {
+		console.error(err);
+		console.log(result);
         console.log("disconnected from database");
-    });
+		process.exit(0);
+	});
 }
 
 // ===============Node CRUD methods===================== //
@@ -116,30 +121,51 @@ Dao.prototype.findNode = function(_id, cb) {
 
 // ===============Way CRUD methods===================== //
 
-Dao.prototype.addWay = function(way, callback) {
+Dao.prototype.addWay = function(way, cb) {
     var way = new Way({
        id: mongoose.Types.ObjectId(),
        nodes: way.nodes,
        ways: way.ways,
        tags: way.tags
     });
-    way.save(function(err, node) {
+    way.save(function(err, data) {
         if(err) return console.error(err);
-        else console.log("Saved: " + data);
+        else {
+            console.log("Saved: " + data);
+            cb(data);
+        }
     });
 }
 
-Dao.prototype.removeWay = function(_id, callback) {
+Dao.prototype.deleteWay = function(_id, cb) {
     Way.remove({ id: _id }, function(err, data) {
         if(err) return console.error(err);
-        data.remove();
+        else {
+            console.log("Deleted: " + data);
+            data.remove();
+            cb(data);
+        }
     });
 }
 
-Dao.prototype.findWayById = function(_id, callback) {
+Dao.prototype.updateWay = function(_id, update, cb) {
+    var opts;
+    Way.update({ id: _id }, update, opts, function(err, data) {
+        if(err) return console.error(err);
+        else {
+            console.log("Updated: " + data);
+            cb(data);
+        }
+    });
+}
+
+Dao.prototype.findWay = function(_id, cb) {
     Way.find({ id: _id }, function(err, data) {
-       if(err) return console.error(err);
-       data.remove();
+        if(err) return console.error(err);
+        else {
+            console.log("Found: " + data);
+            cb(data);
+        }
     });
 }
 
