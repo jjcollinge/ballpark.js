@@ -71,4 +71,11 @@ Way.prototype.filter = function(callback) {
     return this.nodes.filter(callback);
 }
 
+Way.prototype.clear = function(callback) {
+    while(this.nodes.length > 0) {
+        this.nodes.pop();
+    }
+    callback();
+}
+
 module.exports = Way;

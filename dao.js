@@ -79,8 +79,9 @@ Dao.prototype.addNode = function(node, cb) {
        tags: node.tags
     });
     _node.save(function(err, data) {
-        if(err) return console.error(err);
-        else {
+        if(err) {
+            return console.error(err);
+        } else {
             console.log("Created: " + data);
             cb(data);
         }

@@ -4,6 +4,7 @@
  
 // Dependencies
 var request = require("request");
+var events = require('events');
  
 function Node(lon, lat) {
     
@@ -12,10 +13,13 @@ function Node(lon, lat) {
     } else if(lon < -180 || lon > 180 || lat < -180 || lon > 180) {
         throw new Error("illegal geo location given");
     }
+    events.EventEmitter.call(this);
     this.lon = lon;
     this.lat = lat;
     this.tags = {};
 }
+
+Node.prototype.__proto__ = events.EventEmitter.prototype;
 
 Node.prototype.addAltitude = function(alt) {
     this.alt = alt;    
@@ -27,6 +31,14 @@ Node.prototype.addAccuracy = function(acc) {
 
 Node.prototype.addTag = function(key, value) {
     this.tags[key] = value;
+}
+
+Node.prototype.updateLocation = function(lon, lat, alt) {
+    this.lon = lon;
+    this.lat = lat;
+    if(alt !== 'undefined')
+        this.alt = alt;
+    this.emit('update');
 }
 
 Node.prototype.attachIP = function(ip, callback) {
@@ -45,7 +57,7 @@ Node.prototype.attachIP = function(ip, callback) {
     });
 }
 
-Node.prototype.distanceInKMFrom = function(otherNode) {
+Node.prototype.distanceFrom = function(otherNode) {
     var R = 6371; // Radius of the earth in km
     var latDiff = convertDegreesToRadians(otherNode.lat - this.lat);  
     var lonDif = convertDegreesToRadians(otherNode.lon - this.lon); 
@@ -65,4 +77,7 @@ function convertDegreesToRadians(deg) {
     return deg * (Math.PI/180);
 }
 
+Node.prototype.on = function(name, cb) {
+    this.hasOwnProperty(name)
+}
 module.exports = Node;

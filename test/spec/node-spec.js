@@ -12,13 +12,13 @@ describe("Test node data & process", function() {
    it("should calculate a distance of 157km", function() {
         var srcNode = new Node(0.0000, 0.0000);
         var desNode = new Node(1.0000, 1.0000);
-        var distance = Math.floor(srcNode.distanceInKMFrom(desNode));
+        var distance = Math.floor(srcNode.distanceFrom(desNode));
         expect((distance)).toBe(157);
     });
     it("should calculate a distance of 0km", function() {
         var srcNode = new Node(0.0000, 0.0000);
         var desNode = new Node(0.0000, 0.0000);
-        var distance = Math.floor(srcNode.distanceInKMFrom(desNode));
+        var distance = Math.floor(srcNode.distanceFrom(desNode));
         expect((distance)).toBe(0);
     });
     it("should return my location", function() {
@@ -53,9 +53,17 @@ describe("Test node data & process", function() {
         });
 
     });
-    if("should attach a tag to the node", function() {
+    it("should attach a tag to the node", function() {
        var testNode = new Node(0, 0);
        testNode.addTag("name", "Surrey Street");
-       expect(testNode.tags[name]).toBe("Surrey Street");
+       expect(testNode.tags["name"]).toBe("Surrey Street");
    });
+   it("should emit an update event", function() {
+       var testNode = new Node(0, 0);
+       testNode.on('update', function() {
+           expect(this.lon).toBe(1);
+       });
+       testNode.updateLocation(1, 1);
+       expect();
+   })
 });

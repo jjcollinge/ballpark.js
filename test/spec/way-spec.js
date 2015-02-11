@@ -75,4 +75,17 @@ describe("Test way data & process", function() {
         });
         expect(sum.lon).toBe(3);
    });
+   it("should clear all nodes from the way", function() {
+        var node0 = new Node(1, 1);
+        var node1 = new Node(1, 1);
+        var node3 = new Node(1, 1);
+        
+        var way = new Way(node0, node1);
+        way.addNode(node3);
+        expect(way.size()).toBe(3);
+        
+        way.clear(function() {
+           expect(way.size()).toBe(0);
+        });
+   });
 });
