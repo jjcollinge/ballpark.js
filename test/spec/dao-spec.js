@@ -39,6 +39,7 @@ describe("Test node dao", function() {
  
     // test suite vars
     var nodeId = null;
+    var wayId = null;
     
     it("creating a node", function() {
         // test case vars
@@ -141,6 +142,51 @@ describe("Test node dao", function() {
         
         runs(function() {
             expect(num_del).toBe(1);
+        });
+    });// remove node test case
+    
+    it("creating a way", function() {
+        // test case vars
+        var result = null;
+        var callback = false;
+        var nodeA = new Node(0, 0);
+        var nodeB = new Node(1, 1);
+        var way = new Way(nodeA, nodeB);
+        way.addTag("name", "test");
+        
+        dao.addWay(way, function(data) {
+            console.log(data);
+            wayId = data._id;
+            result = data.tags["name"];
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(result).toBe("test");
+        });
+    });// remove node test case
+    
+     it("update a way", function() {
+        // test case vars
+        var callback = false;
+        var num_updated = null;
+        var update = { tags: { name : "road" } };
+        
+        dao.updateWay(wayId, update, function(data) {
+            console.log(data);
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(num_updated).toBe(1);
         });
     });// remove node test case
     

@@ -12,7 +12,7 @@ var Schema = mongoose.Schema,
 ObjectId = Schema.ObjectId;
 
 // Define a node schema
-var nodeSchema = new mongoose.Schema({
+var nodeSchema = new Schema({
     longitude:  { type: Number, required: true },
     latitude:   { type: Number, required: true },
     altitude:   { type: Number },
@@ -24,14 +24,14 @@ mongoose.model('Node', nodeSchema);
 var Node = mongoose.model('Node', nodeSchema);
 
 // Define a way schema
-var waySchema = new mongoose.Schema({
-    nodes:  { type: Object, required: true },
-    ways:   { type: Object },
+var waySchema = new Schema({
+    nodes:  [nodeSchema],
+    ways:   [waySchema],
     tags :  { type: Object }
 });
 
-mongoose.model('Way', nodeSchema);
-var Way = mongoose.model('Way', nodeSchema);
+mongoose.model('Way', waySchema);
+var Way = mongoose.model('Way', waySchema);
 
 function Dao() {
     this.db = mongoose.connection;
@@ -135,15 +135,46 @@ Dao.prototype.clearAllNodes = function() {
 // ===============Way CRUD methods===================== //
 
 Dao.prototype.addWay = function(way, cb) {
-    var way = new Way({
-       nodes: way.nodes,
-       ways: way.ways,
-       tags: way.tags
+
+    var _nodes = [];
+    var _ways = [];
+    
+    // create the default way
+    var theWay = new Way({
+      nodes: [],
+      ways: [],
+      tags: way.tags
     });
-    way.save(function(err, data) {
+    
+    // for each node nested in the way
+    for(var i = 0; i < way.nodes.length; i++) {
+        _nodes[i] = new Node({
+             longitude: way.nodes[i].lon,
+             latitude: way.nodes[i].lat,
+             altitude: way.nodes[i].alt,
+             accuracy: way.nodes[i].acc,
+             tags: way.nodes[i].tags
+        });
+        theWay.nodes.push(_nodes[i]);
+    }
+
+    // for each way nested in the way
+    for(var i = 0; i < way.ways.length; i++) {
+        _ways[i] = new Way({
+             nodes: way.ways[i].nodes,
+             ways: way.ways[i].ways,
+             tags: way.ways[i].tags
+        });
+        theWay.ways.push(_ways[i]);
+    }
+    
+    console.dir(theWay);
+    
+    // save the way
+    theWay.save(function(err, data) {
         if(err) return console.error(err);
         else {
-            console.log("Saved: " + data);
+            console.log("Created: " + data);
             cb(data);
         }
     });
