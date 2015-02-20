@@ -178,6 +178,7 @@ describe("Test node dao", function() {
         
         dao.updateWay(wayId, update, function(data) {
             console.log(data);
+            num_updated = data;
             callback = true;
         });
         
@@ -187,6 +188,46 @@ describe("Test node dao", function() {
         
         runs(function() {
             expect(num_updated).toBe(1);
+        });
+    });// remove node test case
+    
+    it("find a way by id", function() {
+        // test case vars
+        var callback = false;
+        var found = null;
+        
+        dao.findWayById(wayId, function(data) {
+            console.log(data);
+            found = data;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(found).toBeDefined();
+        });
+    });// find node test case
+    
+    it("remove a way", function() {
+        // test case vars
+        var callback = false;
+        var num_del = null;
+        
+        dao.deleteWay(wayId, function(data) {
+            console.log(data);
+            num_del = data;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(num_del).toBe(1);
         });
     });// remove node test case
     

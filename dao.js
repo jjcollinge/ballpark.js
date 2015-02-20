@@ -185,24 +185,21 @@ Dao.prototype.deleteWay = function(id, cb) {
         if(err) return console.error(err);
         else {
             console.log("Deleted: " + data);
-            data.remove();
             cb(data);
         }
     });
 }
 
 Dao.prototype.updateWay = function(id, update, cb) {
-    var opts;
-    Way.update({ _id: id }, update, opts, function(err, data) {
+    var opts = {};
+    Way.update({_id : id}, {$set: update}, opts, function(err, data) {
         if(err) return console.error(err);
-        else {
-            console.log("Updated: " + data);
-            cb(data);
-        }
+        console.log("Updated: " + data);
+        cb(data);
     });
 }
 
-Dao.prototype.findWay = function(id, cb) {
+Dao.prototype.findWayById = function(id, cb) {
     Way.find({ _id: id }, function(err, data) {
         if(err) return console.error(err);
         else {
