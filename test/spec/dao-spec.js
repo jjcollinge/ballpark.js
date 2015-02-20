@@ -6,67 +6,142 @@
 var Dao = require("../../dao");
 var Way = require("../../way");
 var Node = require("../../node");
+ 
+var dao = new Dao();
+
+describe("Test node dao", function() {
     
-describe("dao tests", function() {
-    var dao = new Dao();
-    var nodeId;
-    var wayId;
+    // Setup connection before each test case
+    beforeEach(function() {
+        var connected = false;
+        runs(function () {
+            dao.connect(27017, process.env.IP, function() {
+                connected = true;
+            });
+        });
+        waitsFor(function() {
+            return connected;
+        });
+    });
     
-    beforeEach(function(done) {
-		dao.connect(27017, process.env.IP);
-		done();
-	});
-	afterEach(function(done) {
-		dao.disconnect();
-		done();
-	});
-    describe("async tests", function() {
-        it("creating a node", function() {
+    // Tear down connection after each test case
+    afterEach(function() {
+        var disconnected = false;
+        runs(function() {
+            dao.disconnect(function() {
+               disconnected = true; 
+            });
+        });
+        waitsFor(function() {
+            return disconnected;
+        }) 
+    });
+ 
+    // test suite vars
+    var nodeId = null;
+    
+    it("creating a node", function() {
+        // test case vars
+        var callback = false;
+        var data_longitude = null;
         var node = new Node(0, 0);
+        node.addTag("name", "street");
+        
         dao.addNode(node, function(data) {
-            expect(data).toBeDefined();
+            data_longitude = data.longitude;
+            nodeId = data._id;
+            callback = true;
         });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(data_longitude).toBe(0);
         });
-        it("updating a node", function() {
-            var update =  { latitude: 1 };
-            dao.updateNode(nodeId, update, function(data) {
-                expect(data).toBeDefined();
-            });
+    });// creating node test case
+    
+    it("updating a node", function() {
+        // test case vars
+        var callback = false;
+        var num_updated = null;
+        var update = { longitude: 1 };
+        
+        dao.updateNode(nodeId, update, function(data) {
+            console.log(data);
+            num_updated = data;
+            callback = true;
         });
-        it("find a node", function() {
-            dao.findNode(nodeId, function(data) {
-                expect(data).toBeDefined();
-            });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(num_updated).toBe(1);
         });
-        it("deleting a node", function() {
-            dao.deleteNode(nodeId, function(data) {
-                expect(data).toBeDefined();
-            });
+    });// updating node test case
+    
+    it("find a node by id", function() {
+        // test case vars
+        var callback = false;
+        var found = null;
+        
+        dao.findNodeById(nodeId, function(data) {
+            console.log(data);
+            found = data;
+            callback = true;
         });
-        it("creating a way", function() {
-            var node0 = new Node(0, 0);
-            var node1 = new Node(0, 1);
-            var way = new Way(node0, node1);
-            dao.addWay(way, function(data) {
-                expect(data).toBeDefined();
-                wayId = data.id;
-            });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(found).toBeDefined();
         });
-        it("updating a way", function() {
-            var update =  {tags : { name : 'test' }};
-            dao.updateWay(wayId, update, function(data) {
-                expect(data).toBeDefined();
-            });
+    });// find node test case
+    
+    it("find a node by tag", function() {
+        // test case vars
+        var callback = false;
+        var found = null;
+        var tag = { tag: { name: "street"} }
+        
+        dao.findNode(nodeId, function(data) {
+            console.log(data);
+            found = data;
+            callback = true;
         });
-        it("find a way", function() {
-            dao.findWay(wayId, function(data) {
-                expect(data).toBeDefined();
-            });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(found).toBeDefined();
         });
-        it("deleting a way", function() {
-            dao.deleteWay(wayId, function(data) {
-                expect(data).toBeDefined();
-            })
+    });// find node test case
+    
+    it("remove a node", function() {
+        // test case vars
+        var callback = false;
+        var num_del = null;
+        
+        dao.deleteNode(nodeId, function(data) {
+            console.log(data);
+            num_del = data;
+            callback = true;
         });
-   })
-});
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(num_del).toBe(1);
+        });
+    });// remove node test case
+    
+});// describe
