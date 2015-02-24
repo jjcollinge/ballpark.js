@@ -31,34 +31,65 @@ App.prototype.start = function(callback) {
     var _this = this;
     
     function requestListener(req, res) {
+        
+        var decodedParams = '';
         var url_parse = url.parse(req.url);
-        var handle = _this.handles[url_parse.pathname];
+        var handle;
         var response = new Response(res);
-        route(handle, url_parse.query, response);
+        
+        if(req.method === 'POST') {
+            // get post data from body
+            var body = '';
+            req.on('data', function(chunk) {
+                body += chunk.toString();                
+            });
+            req.on('end', function(){
+                decodedParams = querystring.parse(body);
+            });
+        } else if(req.method === 'GET') {
+            // get get query params
+            decodedParams = url_parse.query;
+        }
+        
+        handle = _this.handles[url_parse.pathname];
+        if(typeof handle !== "undefined") {
+                handle = _this.handles[url_parse.pathname][req.method.toLowerCase()];
+        }
+        route(handle, decodedParams, response);
     }
     
     this.server.start(this.config['Port'], this.config['Address'], requestListener);
     callback("http://" + this.config['Address'] + ':' + this.config['Port']);
 }
 
-App.prototype._method = function(path, handle) {
-    this.handles[path] = handle;
+/**
+ * This function will create/modify an individual handle.
+ * It can facilitate multiple HTTP methods for a single
+ * path.
+ **/
+App.prototype.addHandle= function(path, method, handle) {
+     var currentHandle = this.handles[path];
+    if(typeof currentHandle === "undefined") {
+        currentHandle = {};
+    }
+    currentHandle[method] = handle;
+    this.handles[path] = currentHandle;
 }
 
 App.prototype.get = function(path, handle) {
-    this._method(path, handle);
+    this.addHandle(path, 'get', handle);
 }
 
 App.prototype.post = function(path, handle) {
-    this._method(path, handle);
+    this.addHandle(path, 'post', handle);
 }
 
 App.prototype.put = function(path, handle) {
-    this._method(path, handle);
+    this.addHandle(path, 'put', handle);
 }
 
 App.prototype.delete = function(path, handle) {
-    this._method(path, handle);
+    this.addHandle(path, 'delete', handle);
 }
 
 module.exports = App;

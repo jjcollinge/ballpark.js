@@ -7,11 +7,13 @@
 // Dependencies
 var ballpark = require('./ballpark');
 var app = ballpark();
-var dao = require("./dao");
+var Dao = require("./dao");
 
-dao.connect('27017', process.env.IP, function(url) {
-        console.log('Connected to database: '+ url);
-    });
+var dao = new Dao();
+
+dao.connect('27017', process.env.IP, function() {
+    console.log("connected");
+});
 
 app.configure({
     'Address': process.env.IP,
@@ -25,8 +27,12 @@ app.get("/", function(req, resp) {
 });
 
 app.get("/test", function(req, resp) {
-    resp.send("called handle on path: /test");
+    resp.send("called get request handle on path: /test");
 });
+
+app.post("/test", function(req, resp) {
+    resp.send("called post request handle on path: /test");
+})
 
 app.start(function(url) {
     console.log("Connected to server: " + url)
