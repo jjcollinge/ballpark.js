@@ -5,10 +5,10 @@
  * the given request
  */
 
-exports.route = function(handle, query, resp) {
+exports.route = function(handle, req, resp) {
 
 	if(typeof handle === "function") {
-		return handle(query, resp);
+		return handle(req, resp);
 	} else {
 		resp.statusCode(404).send({ status_code : 404, description : 'A handle for request is not available'});
 	}

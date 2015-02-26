@@ -10,6 +10,7 @@ var http = require("http");
 function Response(res) {
     this.prototype = http.ServerResponse.prototype;
     this.response = res;
+    this.response.statusCode = 200; 
 }
 
 Response.prototype.statusCode = function(code) {
@@ -26,23 +27,26 @@ Response.prototype.send = function(message) {
     
     var body = message;
     var status_code;
+    var contentType;
     
     if(this.response.statusCode == undefined) this.response.statusCode = 404;
-
-    var contentType = "text/plain";
     
-    switch (typeof message) {
+    switch (typeof body) {
         case 'string':
             contentType = "text/html";
             break
         case 'object':
             contentType = "application/json";
-            message = JSON.stringify(message, null, 2);
+            body = JSON.stringify(message, null, 2);
             break;
+        default:
+            contentType = "application/json";
+            this.response.statusCode = 501;
+            body = JSON.stringify({ status_code : 501, description : 'Unsupported Content-Type'}, null, 2);
     }
     
     this.response.writeHead(this.response.statusCode, {"Content-Type": contentType });
-    this.response.write(message);
+    this.response.write(body);
     this.response.end();
 }
 

@@ -209,6 +209,16 @@ Dao.prototype.findWayById = function(id, cb) {
     });
 }
 
+Dao.prototype.findWay = function(doc, cb) {
+    Way.find(doc, function(err, data) {
+        if(err) return console.error(err);
+        else {
+            console.log("Found: " + data);
+            cb(data);
+        }
+    });
+}
+
 Dao.prototype.clearAllWays = function() {
     Way.remove({}, function(err) { 
         if(err) return console.error(err);
