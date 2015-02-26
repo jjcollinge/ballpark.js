@@ -41,17 +41,24 @@ app.get("/node", function(req, resp) {
    var id = req.params.id;
    if(id) {
        dao.findNodeById(id, function(result) {
-           resp.send(result);
+           resp.send(result[0]);
        })
    }
 });
 
 app.get("/ways", function(req, resp) {
-   var allWays;
    dao.findWay({}, function(result) {
-       allWays = result;
-       resp.send(allWays);
+       resp.send(result);
    });
+});
+
+app.get("/way", function(req, resp) {
+   var id = req.params.id;
+   if(id) {
+       dao.findWayById(id, function(result) {
+           resp.send(result[0]);
+       })
+   }
 });
 
 app.get("/test", function(req, resp) {
