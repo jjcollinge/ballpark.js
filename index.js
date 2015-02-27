@@ -8,11 +8,14 @@
 var ballpark = require('./ballpark');
 var app = ballpark();
 var Dao = require("./dao");
+var Node = require("./node");
 
+// Initialise
 var dao = new Dao();
 
 dao.connect('27017', process.env.IP, function() {
-    console.log("connected")
+    console.log("connected");
+    dao.clearAllNodes();
 });
 
 app.configure({
@@ -20,15 +23,6 @@ app.configure({
     'Port': process.env.PORT,
     'XMLSupport' : false,
     'JSONSupport': true
-});
-
-app.get("/addNode", function(req, resp) {
-    resp.send("<form>" +
-              "Latitude:<br><input type='text' name='lat'><br>" +
-              "Longitude:<br><input type='text' name='lon'><br>" +
-              "<br>" +
-              "<input type='submit' value='Submit'>" +
-              "</form>");
 });
 
 app.get("/nodes", function(req, resp) {
@@ -41,9 +35,28 @@ app.get("/node", function(req, resp) {
    var id = req.params.id;
    if(id) {
        dao.findNodeById(id, function(result) {
+           console.log(req.params);
            resp.send(result[0]);
        })
    }
+});
+
+app.post("/node", function(req, resp) {
+    var lon = req.params.lon;
+    var lat = req.params.lat;
+    var alt = req.params.alt;
+    var acc = req.params.acc;
+    var node = new Node(lon, lat);
+    if(alt) {
+        node.addAltitude(alt);
+    }
+    if(acc) {
+        node.addAccuracy(acc);
+    }
+    dao.addNode(node, function(n) {
+        resp.send("added node:\n" + JSON.stringify(n));
+
+    })
 });
 
 app.get("/ways", function(req, resp) {
@@ -61,8 +74,17 @@ app.get("/way", function(req, resp) {
    }
 });
 
-app.get("/test", function(req, resp) {
-    resp.send("called get request handle on path: /test");
+app.get("/", function(req, resp) {
+    resp.send("<form action='/node' method='post' id='nodeForm'>" +
+              "Latitude:<br><input type='text' name='lat' required><br>" +
+              "Longitude:<br><input type='text' name='lon' required><br>" +
+              "Altitude:<br><input type='text' name='alt'><br>" +
+              "Accuracy:<br><input type='text' name='acc'><br>" +
+              "<br>" +
+              "<input type='submit' value='Submit'>" +
+              "</form>" + 
+              "<textarea name='tags' form='nodeForm'>Comma separated tags</textarea>" 
+              );
 });
 
 app.post("/test", function(req, resp) {

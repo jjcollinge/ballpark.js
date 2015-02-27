@@ -9,6 +9,7 @@ var Server = require('./server');
 var Response = require('./response');
 var url = require("url");
 var router = require("./router");
+var querystring = require("querystring");
 
 function App() {
     this.server = new Server();
@@ -33,41 +34,42 @@ App.prototype.start = function(callback) {
     function requestListener(req, res) {
         
         var decodedParams = '';
-        var url_parse = url.parse(req.url);
+        var url_parse = url.parse(req.url, true);
         var handle;
         var response = new Response(res);
         req.params = [];
-        
-        if(req.method === 'POST') {
-            // get post data from body
-            var body = '';
-            req.on('data', function(chunk) {
-                body += chunk.toString();                
-            });
-            req.on('end', function(){
-                req.params = querystring.parse(body);
-            });
-        } else if(req.method === 'GET') {
-            // get get query params
-            if(url_parse.query) {
-                var vars = url_parse.query.split("&");
-                for(var i in vars) {
-                    var pair = vars[i].split("=");
-                    req.params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
-                }
-            }
-        }
         
         // grab the associated handle if it exists
         handle = _this.handles[url_parse.pathname];
         if(typeof handle !== "undefined") {
                 handle = _this.handles[url_parse.pathname][req.method.toLowerCase()];
         }
-        route(handle, req, response);
+        
+        if(req.method === 'GET') {
+            req.params = url_parse.query;
+            route(handle, req, response);
+        } else if(req.method == 'POST') {
+            // parse post parameters from body
+            parsePost(req, function(params) {
+                req.params = params;
+                route(handle, req, response);
+            });
+        }
     }
     
     this.server.start(this.config['Port'], this.config['Address'], requestListener);
     callback("http://" + this.config['Address'] + ':' + this.config['Port']);
+}
+
+function parsePost(req, callback) {
+    var data = '';
+    req.on('data', function(chunk) {
+        data += chunk.toString();                
+    });
+    req.on('end', function(){
+        var post = querystring.parse(data);
+        callback(post);
+    });
 }
 
 /**
