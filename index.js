@@ -42,7 +42,6 @@ app.get("/node", function(req, resp) {
 });
 
 app.post("/node", function(req, resp) {
-    console.dir(req.params);
     var lon = req.params.lon;
     var lat = req.params.lat;
     var alt = req.params.alt;
@@ -62,7 +61,16 @@ app.post("/node", function(req, resp) {
     }
     dao.addNode(node, function(n) {
         resp.send("added node:\n" + JSON.stringify(n));
-    })
+    });
+});
+
+app.delete("/node", function(req, resp) {
+    var id = req.params.id;
+    if(id) {
+        dao.deleteNode(id, function(node) {
+            console.log("deleted node:\n" + JSON.stringify(node));
+        });
+    }
 });
 
 app.get("/ways", function(req, resp) {
@@ -81,14 +89,15 @@ app.get("/way", function(req, resp) {
 });
 
 app.get("/", function(req, resp) {
-    resp.send("<form action='/node' method='post' id='nodeForm'>" +
+    resp.send("<h1>Add Node</h1>\n" +
+              "<form action='/node' method='post' id='nodeCreationForm'>" +
               "Latitude:<br><input type='text' name='lat' required><br>" +
               "Longitude:<br><input type='text' name='lon' required><br>" +
               "Altitude:<br><input type='text' name='alt'><br>" +
               "Accuracy:<br><input type='text' name='acc'><br>" +
               "<br>" +
-              "<textarea name='tags' placeholder='Comma separated tags'></textarea>"  +
-              "<input type='submit' value='Submit'>" +
+              "<textarea name='tags' placeholder='Comma separated tags'></textarea><br>"  +
+              "<input type='submit' value='Create'><br>" +
               "</form>"
               );
 });
