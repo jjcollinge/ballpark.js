@@ -46,6 +46,7 @@ App.prototype.start = function(callback) {
         }
         
         if(req.method === 'GET') {
+            // parse get parameters from url
             req.params = url_parse.query;
             route(handle, req, response);
         } else if(req.method == 'POST') {

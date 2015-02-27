@@ -42,6 +42,7 @@ app.get("/node", function(req, resp) {
 });
 
 app.post("/node", function(req, resp) {
+    console.dir(req.params);
     var lon = req.params.lon;
     var lat = req.params.lat;
     var alt = req.params.alt;
@@ -53,9 +54,14 @@ app.post("/node", function(req, resp) {
     if(acc) {
         node.addAccuracy(acc);
     }
+    var tags = req.params.tags.split(',');
+    for(i in tags) {
+        var tag = tags[i].toString();
+        var pair = tag.split('=');
+        node.addTag(pair[0], pair[1]);
+    }
     dao.addNode(node, function(n) {
         resp.send("added node:\n" + JSON.stringify(n));
-
     })
 });
 
@@ -81,9 +87,9 @@ app.get("/", function(req, resp) {
               "Altitude:<br><input type='text' name='alt'><br>" +
               "Accuracy:<br><input type='text' name='acc'><br>" +
               "<br>" +
+              "<textarea name='tags' placeholder='Comma separated tags'></textarea>"  +
               "<input type='submit' value='Submit'>" +
-              "</form>" + 
-              "<textarea name='tags' form='nodeForm'>Comma separated tags</textarea>" 
+              "</form>"
               );
 });
 
