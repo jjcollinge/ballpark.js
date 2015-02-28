@@ -62,6 +62,14 @@ App.prototype.start = function(callback) {
                 req.params = params;
                 route(handle, req, response);
             });
+        } else if(req.method === 'DELETE') {
+            // parse delete parameters from body
+            parsePut(req, function(params) {
+                req.params = params;
+                route(handle, req, response);
+            });
+        } else {
+            response.statusCode(501).send({ status_code : 501, description : 'Un supported HTTP method'});
         }
     }
     

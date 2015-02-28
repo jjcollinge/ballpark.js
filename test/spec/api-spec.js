@@ -9,6 +9,7 @@ var ballpark = require('../../ballpark');
 var app = ballpark();
 var Dao = require("../../dao");
 var Node = require("../../node");
+var Way = require("../../way");
 var request = require("request");
 
 // Initialise the app & api to test
@@ -63,7 +64,6 @@ app.post("/node", function(req, resp) {
 });
 
 app.put("/node", function(req, resp) {
-   console.dir(req.params);
    var id = req.params.id;
    var lon = req.params.lon;
    var lat = req.params.lat;
@@ -82,16 +82,20 @@ app.put("/node", function(req, resp) {
 app.delete("/node", function(req, resp) {
     var id = req.params.id;
     if(id) {
-        dao.deleteNode(id, function(node) {
-            console.log("deleted node:\n" + JSON.stringify(node));
+        dao.deleteNode(id, function(num) {
+            if(num > 0)
+                resp.send("Deleted way");
+            else
+                resp.send({ status_code : 404, description : 'No way exists with that id to delete'});
         });
     }
 });
 
 app.get("/ways", function(req, resp) {
-   dao.findWay({}, function(result) {
-       resp.send(result);
-   });
+    dao.findWay({}, function(result) {
+        console.log(result);
+        resp.send(result);
+    });
 });
 
 app.get("/way", function(req, resp) {
@@ -103,11 +107,38 @@ app.get("/way", function(req, resp) {
    }
 });
 
+app.put("/way", function(req, resp) {
+   var id = req.params.id;
+   var tagz = req.params.tags;
+   var update = { tags : tagz };
+   if(id != undefined) {
+       dao.updateWay(id, update, function(num) {
+          if(num > 0)
+            resp.send("updated way");
+          else
+            resp.send({ status_code : 404, description : 'No way exists with that id to update'});
+       });
+   }
+});
+
+app.delete("/way", function(req, resp) {
+    var id = req.params.id;
+    if(id) {
+        dao.deleteWay(id, function(num) {
+            if(num > 0)
+                resp.send("Deleted way");
+            else
+                resp.send({ status_code : 404, description : 'No way exists with that id to delete'});
+        });
+    }
+});
+
 app.get("/hello", function(req, resp) {
     resp.send("Hello World");
 });
 
 var nodeId;
+var wayId;
 var counter = 0;
 
 app.start(function(url) {
@@ -125,7 +156,14 @@ app.start(function(url) {
                         var testNode = new Node(22, 333);
                         dao.addNode(testNode, function(node) {
                             nodeId = node.id;
-                            done()
+                            dao.clearAllWays(function() {
+                               var testNodeA = new Node(99, 99);
+                               var testWay = new Way(testNode, testNodeA);
+                               dao.addWay(testWay, function(way) {
+                                  wayId = way.id;
+                                  done(); 
+                               });
+                            });
                         });
                     });
                 });
@@ -188,6 +226,21 @@ app.start(function(url) {
               done();
           });
         });
+        
+        it("should delete a node", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node";
+            var body = new Object();
+            body.id = nodeId;
+            request({
+                method: "DELETE",
+                uri: url,
+                json: body
+            }, function(err, res, body) {
+                if(err) return console.error(err);
+                expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
 
         it("should handle undefined url", function(done) {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/madeupurl";
@@ -208,6 +261,60 @@ app.start(function(url) {
                 done();
            });
         });
+        
+        it("should get ways", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/ways";
+            request.get(url, function(err, res, body) {
+                if(err) return console.error(err);
+                expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+        
+        it("should get a way", function(done) {
+            // temporary hack to bypass async nodeid update
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/way?id=" + wayId;
+            request.get(url, function(err, res, body) {
+              if(err) return console.error(err);
+              expect(res.statusCode).toBe(200);
+              done();
+            });
+        });
+        
+        it("should update a way", function(done) {
+            // temporary hack to bypass async nodeid update
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/way";
+            var body = new Object();
+            body.tags = [];
+            body.tags["name"] = "test";
+            body.id = wayId;
+            request({
+                method: "PUT",
+                uri: url,
+                json: body
+            }, function(err, res, body) {
+              if(err) return console.error(err);
+              expect(res.statusCode).toBe(200);
+              done();
+            });
+        });
+        
+        it("should delete a way", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/way";
+            var body = new Object();
+            body.id = wayId;
+            request({
+                method: "DELETE",
+                uri: url,
+                json: body
+            }, function(err, res, body) {
+                if(err) return console.error(err);
+                expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+
+        
     });
 });
 

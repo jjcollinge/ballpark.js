@@ -3,7 +3,7 @@
  */
  
 function Way(node0, node1) {
-    
+
     // minimum of 2 nodes in a way
     if(arguments.length != 2) {
         throw new Error("atleast 2 nodes required to construct a way");
@@ -15,7 +15,7 @@ function Way(node0, node1) {
     this.nodes.push(node1);
     this.max = 2000;
     this.ways = [];
-    this.tags = {}
+    this.tags = {};
 }
 
 Way.prototype.addWay = function(way) {
