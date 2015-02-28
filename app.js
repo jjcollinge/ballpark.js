@@ -43,15 +43,22 @@ App.prototype.start = function(callback) {
         handle = _this.handles[url_parse.pathname];
         if(typeof handle !== "undefined") {
                 handle = _this.handles[url_parse.pathname][req.method.toLowerCase()];
-        }
-        
+        } // should fail now
+
+        // handle params
         if(req.method === 'GET') {
             // parse get parameters from url
             req.params = url_parse.query;
             route(handle, req, response);
-        } else if(req.method == 'POST') {
+        } else if(req.method === 'POST') {
             // parse post parameters from body
             parsePost(req, function(params) {
+                req.params = params;
+                route(handle, req, response);
+            });
+        } else if(req.method === 'PUT') {
+             // parse put parameters from body
+            parsePut(req, function(params) {
                 req.params = params;
                 route(handle, req, response);
             });
@@ -70,6 +77,16 @@ function parsePost(req, callback) {
     req.on('end', function(){
         var post = querystring.parse(data);
         callback(post);
+    });
+}
+
+function parsePut(req, callback) {
+    var data = '';
+    req.on('data', function(chunk) {
+        data += chunk.toString();                
+    });
+    req.on('end', function() {
+        callback(JSON.parse(data));
     });
 }
 

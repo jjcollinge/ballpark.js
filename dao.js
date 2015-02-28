@@ -57,7 +57,6 @@ Dao.prototype.connect = function(port, ip, cb) {
 
 Dao.prototype.disconnect = function(cb) {
     mongoose.disconnect(cb);
-    
 }
 
 Dao.prototype.isConnected = function() {
@@ -106,29 +105,26 @@ Dao.prototype.updateNode = function(id, update, cb) {
 }
 
 Dao.prototype.findNodeById = function(id, cb) {
-    Node.find({ _id: id }, function(err, data) {
+    Node.findById(id, function(err, data) {
         if(err) return console.error(err);
-        else {
-            console.log("Found: " + data);
-            cb(data);
-        }
+        console.log("Found: " + data);
+        return cb(data);
     });
 }
 
 Dao.prototype.findNode = function(doc, cb) {
     Node.find(doc, function(err, data) {
         if(err) return console.error(err);
-        else {
-            console.log("Found: " + data);
-            cb(data);
-        }
+        console.log("Found: " + data);
+        cb(data);
     });
 }
 
-Dao.prototype.clearAllNodes = function() {
+Dao.prototype.clearAllNodes = function(cb) {
     Node.remove({}, function(err) { 
         if(err) return console.error(err);
-       console.log('nodes collection removed');
+        console.log('nodes collection removed');
+        cb();
     });
 }
 
@@ -202,27 +198,24 @@ Dao.prototype.updateWay = function(id, update, cb) {
 Dao.prototype.findWayById = function(id, cb) {
     Way.find({ _id: id }, function(err, data) {
         if(err) return console.error(err);
-        else {
-            console.log("Found: " + data);
-            cb(data);
-        }
+        console.log("Found: " + data);
+        cb(data);
     });
 }
 
 Dao.prototype.findWay = function(doc, cb) {
     Way.find(doc, function(err, data) {
         if(err) return console.error(err);
-        else {
-            console.log("Found: " + data);
-            cb(data);
-        }
+        console.log("Found: " + data);
+        cb(data);
     });
 }
 
-Dao.prototype.clearAllWays = function() {
+Dao.prototype.clearAllWays = function(cb) {
     Way.remove({}, function(err) { 
         if(err) return console.error(err);
-       console.log('way collection removed'); 
+       console.log('way collection removed');
+       cb();
     });
 }
 
