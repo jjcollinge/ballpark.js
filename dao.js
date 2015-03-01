@@ -219,4 +219,28 @@ Dao.prototype.clearAllWays = function(cb) {
     });
 }
 
+// ===============Utility methods===================== //
+
+// find nodes within bounding box in order of closest first
+Dao.prototype.findNodesWithinRadiusOf = function(src, radius, cb) {
+    var minLon = src.lon - radius;
+    var maxLon = src.lon + radius;
+    var minLat = src.lat - radius;
+    var maxLat = src.lat + radius;
+    
+    Node.find({ longitude: { $gt: minLon, $lt: maxLon },
+                latitude: { $gt: minLat, $lt: maxLat }
+    }, function(err, data) {
+        if(data != undefined) {
+            data.sort(function(a, b) {
+            var disA = src.distanceTo(a);
+            var disB = src.distanceTo(b);
+            
+            return disA - disB;
+            });
+        }
+        cb(data);
+    });
+}
+
 module.exports = Dao;

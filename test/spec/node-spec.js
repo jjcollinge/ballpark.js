@@ -12,13 +12,13 @@ describe("Test node data & process", function() {
    it("should calculate a distance of 157km", function() {
         var srcNode = new Node(0.0000, 0.0000);
         var desNode = new Node(1.0000, 1.0000);
-        var distance = Math.floor(srcNode.distanceFrom(desNode));
+        var distance = Math.floor(srcNode.distanceTo(desNode));
         expect((distance)).toBe(157);
     });
     it("should calculate a distance of 0km", function() {
         var srcNode = new Node(0.0000, 0.0000);
         var desNode = new Node(0.0000, 0.0000);
-        var distance = Math.floor(srcNode.distanceFrom(desNode));
+        var distance = Math.floor(srcNode.distanceTo(desNode));
         expect((distance)).toBe(0);
     });
     it("should return my location", function() {

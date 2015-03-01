@@ -145,6 +145,26 @@ describe("Test node dao", function() {
         });
     });// remove node test case
     
+    it("find node within radius", function() {
+        // test case vars
+        var callback = false;
+        var testNode = new Node(3, 3);
+        var nodes;
+        
+        dao.findNodesWithinRadiusOf(testNode, 2000, function(data) {
+            nodes = data;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(nodes).toBeDefined();
+        });
+    })
+    
     it("creating a way", function() {
         // test case vars
         var result = null;

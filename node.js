@@ -57,7 +57,7 @@ Node.prototype.attachIP = function(ip, callback) {
     });
 }
 
-Node.prototype.distanceFrom = function(otherNode) {
+Node.prototype.distanceTo = function(otherNode) {
     var R = 6371; // Radius of the earth in km
     var latDiff = convertDegreesToRadians(otherNode.lat - this.lat);  
     var lonDif = convertDegreesToRadians(otherNode.lon - this.lon); 
