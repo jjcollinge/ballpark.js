@@ -7,38 +7,26 @@
 // Dependencies
 var ballpark = require('./ballpark');
 var app = ballpark();
-var Dao = require("./dao");
 var Node = require("./node");
 
-// Initialise
-var dao = new Dao();
-
-dao.connect('27017', process.env.IP, function() {
-    console.log("connected");
-    dao.clearAllNodes();
-});
-
 app.configure({
-    'Address': process.env.IP,
-    'Port': process.env.PORT,
-    'XMLSupport' : false,
-    'JSONSupport': true
+    'webserver_address': process.env.IP,
+    'webserver_port': process.env.PORT,
+    'database_address': process.env.IP,
+    'database_port': 27017
 });
 
 app.get("/nodes", function(req, resp) {
-    dao.findNode({}, function(result) {
-        resp.send(result);
+    app.getAllNodes(function(nodes) {
+        resp.send(nodes);
     });
 });
 
 app.get("/node", function(req, resp) {
    var id = req.params.id;
-   if(id) {
-       dao.findNodeById(id, function(result) {
-           console.log(req.params);
-           resp.send(result[0]);
-       })
-   }
+   app.getNode(id, function(node) {
+       resp.send(node);
+   });
 });
 
 app.post("/node", function(req, resp) {
@@ -59,33 +47,22 @@ app.post("/node", function(req, resp) {
         var pair = tag.split('=');
         node.addTag(pair[0], pair[1]);
     }
-    dao.addNode(node, function(n) {
-        resp.send("added node:\n" + JSON.stringify(n));
+    app.addNode(node, function(addedNode) {
+       resp.send("added node:\n" + JSON.stringify(addedNode)); 
     });
 });
 
-app.delete("/node", function(req, resp) {
-    var id = req.params.id;
-    if(id) {
-        dao.deleteNode(id, function(node) {
-            console.log("deleted node:\n" + JSON.stringify(node));
-        });
-    }
-});
-
 app.get("/ways", function(req, resp) {
-   dao.findWay({}, function(result) {
-       resp.send(result);
-   });
+    app.getAllWays(function(ways) {
+       resp.send(ways);
+    })
 });
 
 app.get("/way", function(req, resp) {
-   var id = req.params.id;
-   if(id) {
-       dao.findWayById(id, function(result) {
-           resp.send(result[0]);
-       })
-   }
+    var id = req.params.id;
+    app.getWay(function(way) {
+        resp.send(way);
+    });
 });
 
 app.get("/", function(req, resp) {
