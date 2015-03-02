@@ -27,6 +27,7 @@ app.get("/nodes", function(req, resp) {
 app.get("/node", function(req, resp) {
     var id = req.params.id;
     app.getNode(id, function(node) {
+        console.log(node);
         resp.send(node);
     });
 });
@@ -84,7 +85,7 @@ app.get("/ways", function(req, resp) {
 
 app.get("/way", function(req, resp) {
     var id = req.params.id;
-    app.getWay(function(way) {
+    app.getWay(id, function(way) {
         resp.send(way); 
     });
 });
@@ -115,25 +116,24 @@ var nodeId;
 var wayId;
 var counter = 0;
 
-app.start(function(url) {
-    console.log("Connected to server: " + url);
+app.start(function() {
     // API Test goes below here now that the app has been set!
     describe("Test Api", function() {
 
         // Setup connection before each test case
         beforeEach(function(done) {
             counter++;
-            console.log("Begining test: " + counter);
+            console.log("Beginning test: " + counter);
             app.setUpDaoConnection(function() {
                 app.clearAllNodes(function() {
                     var testNode = new Node(22, 333);
-                    app.addNode(testNode, function(node) {
-                        nodeId = node.id;
+                    app.addNode(testNode, function(response) {
+                        nodeId = response.payload._id;
                         app.clearAllWays(function() {
                             var testNodeA = new Node(99, 99);
                             var testWay = new Way(testNode, testNodeA);
-                            app.addWay(testWay, function(way) {
-                                wayId = way.id;
+                            app.addWay(testWay, function(response) {
+                                wayId = response.payload._id;
                                 done();
                             });
                         });
@@ -150,17 +150,17 @@ app.start(function(url) {
             });
         }); // end after each
 
+        //#1
         it("should return hello world", function(done) {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/hello";
-            console.log("1");
             request.get(url, function(err, res, body) {
                 if (err) return console.error(err);
-                console.log("2");
                 expect(body).toBe("Hello World");
                 done();
             });
         });
 
+        //#2
         it("should get nodes", function(done) {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/nodes";
             request.get(url, function(err, res, body) {
@@ -170,6 +170,7 @@ app.start(function(url) {
             });
         });
 
+        //#3
         it("should get a node", function(done) {
             // temporary hack to bypass async nodeid update
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node?id=" + nodeId;
@@ -180,6 +181,7 @@ app.start(function(url) {
             });
         });
 
+        //#4
         it("should update a node", function(done) {
             // temporary hack to bypass async nodeid update
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node";
@@ -198,6 +200,7 @@ app.start(function(url) {
             });
         });
 
+        //#5
         it("should delete a node", function(done) {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node";
             var body = new Object();
@@ -213,6 +216,7 @@ app.start(function(url) {
             });
         });
 
+        //#6
         it("should handle undefined url", function(done) {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/madeupurl";
             var body = new Object();
@@ -224,6 +228,7 @@ app.start(function(url) {
             });
         });
 
+        //#7
         it("should add a node", function(done) {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node";
             request.post(url, {
@@ -238,6 +243,7 @@ app.start(function(url) {
             });
         });
 
+        //#8
         it("should get ways", function(done) {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/ways";
             request.get(url, function(err, res, body) {
@@ -247,6 +253,7 @@ app.start(function(url) {
             });
         });
 
+        //#9
         it("should get a way", function(done) {
             // temporary hack to bypass async nodeid update
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/way?id=" + wayId;
@@ -257,6 +264,7 @@ app.start(function(url) {
             });
         });
 
+        //#10
         it("should update a way", function(done) {
             // temporary hack to bypass async nodeid update
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/way";
@@ -275,6 +283,7 @@ app.start(function(url) {
             });
         });
 
+        //#11
         it("should delete a way", function(done) {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/way";
             var body = new Object();
@@ -289,7 +298,6 @@ app.start(function(url) {
                 done();
             });
         });
-
 
     });
 });

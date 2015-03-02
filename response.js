@@ -42,7 +42,7 @@ Response.prototype.send = function(message) {
         default:
             contentType = "application/json";
             this.response.statusCode = 501;
-            body = JSON.stringify({ status_code : 501, description : 'Unsupported Content-Type'}, null, 2);
+            body = JSON.stringify({ status_code : 501, description : 'unsupported content-type'}, null, 2);
     }
     
     this.response.writeHead(this.response.statusCode, {"Content-Type": contentType });

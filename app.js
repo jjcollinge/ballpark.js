@@ -34,8 +34,6 @@ App.prototype.start = function(callback) {
     var route = router.route;
     var _this = this;
     
-    this.setUpDaoConnection(function() {});
-    
     function requestListener(req, res) {
         
         var decodedParams = '';
@@ -74,24 +72,25 @@ App.prototype.start = function(callback) {
                 route(handle, req, response);
             });
         } else {
-            response.statusCode(501).send({ status_code : 501, description : 'Un supported HTTP method'});
+            response.statusCode(501).send({ status_code : 501, description : 'unsupported HTTP method'});
         }
     }
     
     this.server.start(this.config['webserver_port'], this.config['webserver_address'], requestListener);
-    callback("http://" + this.config['webserver_address'] + ':' + this.config['webserver_port']);
+    console.log("started listening on server: " + "http://" + this.config['webserver_address'] + ':' + this.config['webserver_port']);
+    callback();
 }
 
 App.prototype.setUpDaoConnection = function(callback) {
     this.dao.connect(this.config['database_port'], this.config['database_address'], function() {
-        console.log("setup data access layer");
+        console.log("setup data access connection");
         callback();
     });
 }
 
 App.prototype.tearDownDaoConnection = function(callback) {
     this.dao.disconnect(function() {
-        console.log("tore down data access layer");
+        console.log("tore down data access connection");
         callback();
     });
 }
@@ -159,13 +158,13 @@ App.prototype.getNode = function(id, cb) {
            cb(result);
        })
    } else {
-       cb({ status_code: 404, description: 'Undefined id provided' });
+       cb({status_code: 404, description: 'undefined id provided'});
    }
 }
 
 App.prototype.addNode = function(node, cb) {
-    this.dao.addNode(node, function(n) {
-        cb(n);
+    this.dao.addNode(node, function(addedNode) {
+        cb({status_code: 200, description: 'added node: ', payload: addedNode});
     });
 }
 
@@ -173,13 +172,13 @@ App.prototype.updateNode = function(id, update, cb) {
    if(id) {
         this.dao.updateNode(id, update, function(num) {
             if(num > 0) {
-                cb(num);
+                cb({status_code : 200, description : 'updated node'});
             } else {
-                cb({ status_code : 404, description : 'No node exists with that id to update'});
+                cb({status_code : 404, description : 'no node exists with that id to update'});
             }
         });
    } else { 
-       cb({ status_code: 404, description: 'Undefined id provided' });
+       cb({status_code: 404, description: 'undefined id provided'});
    }
 }
 
@@ -187,19 +186,19 @@ App.prototype.removeNode = function(id, cb) {
     if(id) {
         this.dao.deleteNode(id, function(num) {
             if (num > 0) {
-                cb(num);
+                cb({status_code : 200, description : 'removed node'});
             } else {
-                cb({ status_code: 404, description: 'No node exists with that id to delete'});
+                cb({status_code: 404, description: 'no node exists with that id to delete'});
             }
         });
     } else {
-        cb({ status_code: 404, description: 'Undefined id provided' });
+        cb({status_code: 404, description: 'undefined id provided'});
     }
 }
 
 App.prototype.addWay = function(way, cb) {
-    this.dao.addWay(way, function(result) {
-        cb(result);
+    this.dao.addWay(way, function(addedWay) {
+        cb({status_code: 200, description: 'added way: ', payload: addedWay});
     });
 }
 
@@ -215,35 +214,35 @@ App.prototype.getWay = function(id, cb) {
             cb(result[0]);
         })
     } else {
-        cb({ status_code: 404, description: 'Undefined id given' });
+        cb({status_code: 404, description: 'undefined id given'});
     }
 }
 
 App.prototype.updateWay = function(id, update, cb) {
     if(id) {
-        this.dao.updateWay(id, function(num) {
+        this.dao.updateWay(id, update, function(num) {
             if(num > 0) {
-                cb(num);
+                cb({status_code : 200, description : 'updated way'});
             } else {
-                cb({ status_code: 404, description: 'No way exists with that id to update'});
+                cb({status_code: 404, description: 'no way exists with that id to update'});
             }
         });
     } else {
-        cb({ status_code: 404, description: 'Undefined id given'});
+        cb({status_code: 404, description: 'undefined id given'});
     }
 }
 
-App.prototype.deleteWay = function(id, cb) {
+App.prototype.removeWay = function(id, cb) {
     if(id) {
         this.dao.deleteWay(id, function(num) {
            if(num > 0) {
-               cb(num);
+               cb({status_code : 404, description : 'removed way'});
            } else {
-               cb({ status_code: 404, description: 'No way exists with that id to delete'});
+               cb({status_code: 404, description: 'no way exists with that id to delete'});
            }
         });
     } else {
-        cb({ status_code: 404, description: 'Undefined id given'});
+        cb({status_code: 404, description: 'undefined id given'});
     }
 }
 
