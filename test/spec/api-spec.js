@@ -11,6 +11,13 @@ var Node = require("../../node");
 var Way = require("../../way");
 var request = require("request");
 
+/**
+ * Initialise the application and the RESTful API to test
+ * ------------------------------------------------------
+ * This included configuring the database and web server
+ * addresses. Routes will be setup in a RESTful manner.
+ **/
+
 app.configure({
     'webserver_address': process.env.IP,
     'webserver_port': process.env.PORT,
@@ -111,6 +118,12 @@ app.delete("/way", function(req, resp) {
 app.get("/hello", function(req, resp) {
     resp.send("Hello World");
 });
+
+/**
+ * Now define the test specification to test the RESTful API.
+ * Everything from here to the EOF should only relate to the
+ * test specification.
+ **/
 
 var nodeId;
 var wayId;
@@ -298,6 +311,6 @@ app.start(function() {
                 done();
             });
         });
-
-    });
-});
+        
+    });// end describe
+});// end app start callback

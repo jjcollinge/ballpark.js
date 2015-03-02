@@ -47,8 +47,8 @@ app.post("/node", function(req, resp) {
         var pair = tag.split('=');
         node.addTag(pair[0], pair[1]);
     }
-    app.addNode(node, function(addedNode) {
-       resp.send("added node:\n" + JSON.stringify(addedNode)); 
+    app.addNode(node, function(response) {
+       resp.send(response); 
     });
 });
 
