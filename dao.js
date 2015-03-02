@@ -133,9 +133,6 @@ Dao.prototype.clearAllNodes = function(cb) {
 // ===============Way CRUD methods===================== //
 
 Dao.prototype.addWay = function(way, cb) {
-
-    var _nodes = [];
-    var _ways = [];
     
     // create the default way
     var thisWay = new Way({
@@ -146,7 +143,7 @@ Dao.prototype.addWay = function(way, cb) {
     
     var that = this;
 
-    var func1 = async.each(way.nodes, function(_node, callback) {
+    var refNodes = async.each(way.nodes, function(_node, callback) {
         var id = _node._id;
         if(id === undefined) {
             that.addNode(_node, function(newNode) {
@@ -158,7 +155,7 @@ Dao.prototype.addWay = function(way, cb) {
         }
     });
 
-    var func2 =async.each(way.ways, function(_way, callback) {
+    var refWays = async.each(way.ways, function(_way, callback) {
         var id = _way._id;
         if(id === undefined) {
             that.addWay(_way, function(newWay) {
@@ -171,7 +168,7 @@ Dao.prototype.addWay = function(way, cb) {
     });
     
     // save the way
-   var func3 = thisWay.save(function(err, data) {
+   var saveWay = thisWay.save(function(err, data) {
         if(err) return console.error(err);
         else {
             way._id = data._id;
@@ -179,7 +176,7 @@ Dao.prototype.addWay = function(way, cb) {
         }
     });
     
-    async.series([func1, func2, func3], function(err, results) {
+    async.series([refNodes, refWays, saveWay], function(err, results) {
         console.log("done");
     });
 }
