@@ -7,6 +7,7 @@
 
 // Dependencies
 var mongoose = require('mongoose');
+var async = require('async');
 
 var Schema = mongoose.Schema,
 ObjectId = Schema.ObjectId;
@@ -25,8 +26,8 @@ var Node = mongoose.model('Node', nodeSchema);
 
 // Define a way schema
 var waySchema = new Schema({
-    nodes:  [nodeSchema],
-    ways:   [waySchema],
+    nodes:  [{type: Schema.Types.ObjectId, ref: 'Node'}],
+    ways:   [{type: Schema.Types.ObjectId, ref: 'Way'}],
     tags :  { type: Object }
 });
 
@@ -80,8 +81,9 @@ Dao.prototype.addNode = function(node, cb) {
         if(err) {
             return console.error(err);
         } else {
-            console.log("Created: " + data);
-            cb(data);
+            console.log("Created Node: " + data);
+            node._id = data._id;
+            cb(node);
         }
     });
 }
@@ -136,43 +138,49 @@ Dao.prototype.addWay = function(way, cb) {
     var _ways = [];
     
     // create the default way
-    var theWay = new Way({
+    var thisWay = new Way({
       nodes: [],
       ways: [],
       tags: way.tags
     });
     
-    // for each node nested in the way
-    for(var i = 0; i < way.nodes.length; i++) {
-        _nodes[i] = new Node({
-             longitude: way.nodes[i].lon,
-             latitude: way.nodes[i].lat,
-             altitude: way.nodes[i].alt,
-             accuracy: way.nodes[i].acc,
-             tags: way.nodes[i].tags
-        });
-        theWay.nodes.push(_nodes[i]);
-    }
+    var that = this;
 
-    // for each way nested in the way
-    for(var i = 0; i < way.ways.length; i++) {
-        _ways[i] = new Way({
-             nodes: way.ways[i].nodes,
-             ways: way.ways[i].ways,
-             tags: way.ways[i].tags
-        });
-        theWay.ways.push(_ways[i]);
-    }
-    
-    console.dir(theWay);
+    var func1 = async.each(way.nodes, function(_node, callback) {
+        var id = _node._id;
+        if(id === undefined) {
+            that.addNode(_node, function(newNode) {
+                _node._id = newNode._id;
+                thisWay.ways.push(_node._id);
+            });
+        } else {
+            thisWay.nodes.push(id);
+        }
+    });
+
+    var func2 =async.each(way.ways, function(_way, callback) {
+        var id = _way._id;
+        if(id === undefined) {
+            that.addWay(_way, function(newWay) {
+                _way._id = newWay._id;
+                thisWay.ways.push(_way._id);
+            });
+        } else {
+            thisWay.ways.push(id);
+        }
+    });
     
     // save the way
-    theWay.save(function(err, data) {
+   var func3 = thisWay.save(function(err, data) {
         if(err) return console.error(err);
         else {
-            console.log("Created: " + data);
-            cb(data);
+            way._id = data._id;
+            cb(way);
         }
+    });
+    
+    async.series([func1, func2, func3], function(err, results) {
+        console.log("done");
     });
 }
 
@@ -231,7 +239,7 @@ Dao.prototype.findNodesWithinRadiusOf = function(src, radius, cb) {
     Node.find({ longitude: { $gt: minLon, $lt: maxLon },
                 latitude: { $gt: minLat, $lt: maxLat }
     }, function(err, data) {
-        if(data != undefined) {
+        if(typeof data != undefined) {
             data.sort(function(a, b) {
             var disA = src.distanceTo(a);
             var disB = src.distanceTo(b);

@@ -8,8 +8,6 @@ function Way(node0, node1) {
     if(arguments.length != 2) {
         throw new Error("atleast 2 nodes required to construct a way");
     }
-    this.id;
-    this.idAttribute;
     this.nodes = [];
     this.nodes.push(node0);
     this.nodes.push(node1);

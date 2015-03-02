@@ -49,7 +49,7 @@ describe("Test node dao", function() {
         node.addTag("name", "street");
         
         dao.addNode(node, function(data) {
-            data_longitude = data.longitude;
+            data_longitude = data.lon;
             nodeId = data._id;
             callback = true;
         });
@@ -248,6 +248,34 @@ describe("Test node dao", function() {
         
         runs(function() {
             expect(num_del).toBe(1);
+        });
+    });// remove node test case
+    
+    it("add a nested way", function() {
+        // test case vars
+        
+        var callback = false;
+        var result = null;
+        var testNodeA = new Node(0, 0);
+        var testNodeB = new Node(1, 1);
+        var testWayA = new Way(testNodeA, testNodeB);
+        var testNodeC = new Node(2, 2);
+        var testWayB = new Way(testNodeB, testNodeC);
+        testWayA.addWay(testWayB);
+        
+        dao.addWay(testWayA, function(data) {
+            console.log(data);
+            result = data;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(result.nodes.length).toBe(2);
+            expect(result.ways.length).toBe(1);
         });
     });// remove node test case
     

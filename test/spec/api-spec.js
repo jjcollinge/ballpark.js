@@ -144,10 +144,12 @@ app.start(function() {
                         nodeId = response.payload._id;
                         app.clearAllWays(function() {
                             var testNodeA = new Node(99, 99);
-                            var testWay = new Way(testNode, testNodeA);
-                            app.addWay(testWay, function(response) {
-                                wayId = response.payload._id;
-                                done();
+                            app.addNode(testNodeA, function() {
+                                var testWay = new Way(testNode, testNodeA);
+                                app.addWay(testWay, function(response) {
+                                    wayId = response.payload._id;
+                                    done();
+                                });
                             });
                         });
                     });
