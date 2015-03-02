@@ -16,10 +16,8 @@ var request = require("request");
 var dao = new Dao();
 
 app.configure({
-    'Address': process.env.IP,
-    'Port': process.env.PORT,
-    'XMLSupport' : false,
-    'JSONSupport': true
+    'webserver_address': process.env.IP,
+    'webserver_port': process.env.PORT
 });
 
 app.get("/nodes", function(req, resp) {

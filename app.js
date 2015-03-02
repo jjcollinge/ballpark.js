@@ -15,10 +15,8 @@ function App() {
     this.server = new Server();
     this.handles = {};
     this.config = {
-        'Address': '127.0.0.1',
-        'Port': '8080',
-        'XMLSupport' : false,
-        'JSONSupport': true
+        'webserver_address': '127.0.0.1',
+        'webserver_port': '8080'
     }
 }
 
@@ -73,8 +71,8 @@ App.prototype.start = function(callback) {
         }
     }
     
-    this.server.start(this.config['Port'], this.config['Address'], requestListener);
-    callback("http://" + this.config['Address'] + ':' + this.config['Port']);
+    this.server.start(this.config['webserver_port'], this.config['webserver_address'], requestListener);
+    callback("http://" + this.config['webserver_address'] + ':' + this.config['webserver_port']);
 }
 
 function parsePost(req, callback) {
