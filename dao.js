@@ -221,7 +221,7 @@ Dao.prototype.updateWay = function(id, update, opts, callback) {
 Dao.prototype.findWayById = function(id, callback) {
     Way.find({ _id: id }, function(err, results) {
         if(err) return console.error(err);
-        callback(results);
+        return callback(results);
     });
 }
 
@@ -242,7 +242,6 @@ Dao.prototype.clearAllWays = function(callback) {
 Dao.prototype.createRelation = function() {
     var args = Array.prototype.slice.call(arguments);
     var callback = args.pop();
-    console.dir(args);
     
     var relation = new Relation({
         elements: [],
@@ -284,9 +283,9 @@ Dao.prototype.findRelation = function(doc, callback) {
 }
 
 Dao.prototype.findRelationById = function(id, callback) {
-    Relation.find({ _id: id }, function(err, results) {
+    Relation.find( { _id: id }, function(err, results) {
         if(err) return console.error(err);
-        callback(results);
+        return callback(results);
     });
 }
 

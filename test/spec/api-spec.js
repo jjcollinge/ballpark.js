@@ -109,6 +109,37 @@ app.delete("/way", function(req, resp) {
     });
 });
 
+app.get("/relations", function(req, resp) {
+    app.getAllRelations(function(result) {
+        resp.send(result);
+    });
+});
+
+app.get("/relation", function(req, resp) {
+    var id = req.params.id;
+    app.getRelation(id, function(result) {
+        resp.send(result); 
+    });
+});
+
+app.put("/relation", function(req, resp) {
+    var id = req.params.id;
+    var tagz = req.params.tags;
+    var update = {
+        tags: tagz
+    };
+    app.updateRelation(id, update, function(result) {
+        resp.send(result);
+    });
+});
+
+app.delete("/relation", function(req, resp) {
+    var id = req.params.id;
+    app.removeRelation(id, function(result) {
+        resp.send(result);
+    });
+});
+
 app.get("/hello", function(req, resp) {
     resp.send("Hello World");
 });
@@ -121,6 +152,7 @@ app.get("/hello", function(req, resp) {
 
 var nodeId;
 var wayId;
+var relationId;
 var counter = 0;
 
 app.start(function() {
@@ -148,7 +180,16 @@ app.start(function() {
                                            console.log("created way: " + way);
                                            app.saveWay(way, function(result) {
                                                wayId = result.payload._id;
-                                               done();
+                                               app.clearAllRelations(function() {
+                                                   console.log("cleared all relations");
+                                                   app.createRelation({ element: nodeA._id, role: 'inner' }, { element: way._id, role: 'outter' }, function(relation) {
+                                                       console.log("created relation: " + relation);
+                                                       app.saveRelation(relation, function(result) {
+                                                           relationId = result.payload._id;
+                                                           done();
+                                                       });
+                                                   });
+                                               });
                                            });
                                        });
                                    });
@@ -309,6 +350,62 @@ app.start(function() {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/way";
             var body = new Object();
             body.id = wayId;
+            request({
+                method: "DELETE",
+                uri: url,
+                json: body
+            }, function(err, res, body) {
+                if (err) return console.error(err);
+                expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+        
+        //#12
+        it("should get relations", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/relations";
+            request.get(url, function(err, res, body) {
+                if (err) return console.error(err);
+                expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+
+        //#13
+        it("should get a relation", function(done) {
+            // temporary hack to bypass async nodeid update
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/relation?id=" + relationId;
+            request.get(url, function(err, res, body) {
+                if (err) return console.error(err);
+                expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+
+        //#14
+        it("should update a relation", function(done) {
+            // temporary hack to bypass async nodeid update
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/relation";
+            var body = new Object();
+            body.tags = [];
+            body.tags["name"] = "test";
+            body.id = relationId;
+            request({
+                method: "PUT",
+                uri: url,
+                json: body
+            }, function(err, res, body) {
+                if (err) return console.error(err);
+                expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+
+        //#15
+        it("should delete a relation", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/relation";
+            var body = new Object();
+            body.id = relationId;
             request({
                 method: "DELETE",
                 uri: url,
