@@ -25,17 +25,21 @@ var Node = mongoose.model('Node', nodeSchema);
 
 // Define a way schema
 var waySchema = new Schema({
-    nodes:  [{type: Schema.Types.ObjectId, ref: 'Node'}],
-    ways:   [{type: Schema.Types.ObjectId, ref: 'Way'}],
-    tags :  { type: Object }
+    nodes:  [{type: ObjectId,
+              ref: 'Node'}],
+    ways:   [{type: ObjectId,
+              ref: 'Way'}],
+    tags:  { type: Object }
 });
 
 var Way = mongoose.model('Way', waySchema);
 
 var relationSchema = new Schema({
-   elements: [{ type: Schema.Types.ObjectId,
-                ref: 'Element',
-                role: String }] 
+    elements: [ {
+        element: { type: ObjectId, ref: 'Elements' },
+        role: { type: String }
+    }],
+    tags:   { type: Object }
 });
 
 var Relation = mongoose.model('Relation', relationSchema);
@@ -74,7 +78,6 @@ Dao.prototype.isConnected = function() {
 }
 
 Dao.prototype.createNode = function() {
-    
     var args = Array.prototype.slice.call(arguments);
     var callback = args.pop();
     
@@ -115,9 +118,9 @@ Dao.prototype.createNode = function() {
 }
 
 Dao.prototype.saveNode = function(node, callback) {
-    node.save(function(err, data) {
+    node.save(function(err, results) {
        if(err) return console.error(err);
-       callback(node);
+       callback(results);
     });
 }
 
@@ -170,7 +173,6 @@ Dao.prototype.clearAllNodes = function(callback) {
 }
 
 Dao.prototype.createWay = function() {
-    
     var args = Array.prototype.slice.call(arguments);
     var callback = args.pop();
     
@@ -237,5 +239,62 @@ Dao.prototype.clearAllWays = function(callback) {
     });
 }
 
+Dao.prototype.createRelation = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var callback = args.pop();
+    console.dir(args);
+    
+    var relation = new Relation({
+        elements: [],
+        tags: {}
+    });
+    
+    for(index in args) {
+        relation.elements.push(args[index]);
+    }
+    callback(relation);
+}
+
+Dao.prototype.saveRelation = function(relation, callback) {
+    relation.save(function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.deleteRelation = function(id, callback) {
+    Relation.remove({ _id: id }, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.updateRelation = function(id, update, opts, callback) {
+    Relation.update({ _id : id }, {$set: update}, opts, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.findRelation = function(doc, callback) {
+    Relation.find(doc, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.findRelationById = function(id, callback) {
+    Relation.find({ _id: id }, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.clearAllRelations = function(callback) {
+    Relation.remove({}, function(err) { 
+        if(err) return console.error(err);
+       callback();
+    });
+}
 
 module.exports = Dao;

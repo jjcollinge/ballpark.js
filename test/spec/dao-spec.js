@@ -38,6 +38,7 @@ describe("Test node dao", function() {
     // test suite vars
     var nodeId = null;
     var wayId = null;
+    var relationId = null;
     
     it("creating a node", function() {
         // test case vars
@@ -70,9 +71,9 @@ describe("Test node dao", function() {
         var update = { longitude: 1 };
         var opts = {};
         
-        dao.updateNode(nodeId, update, opts, function(result) {
-            console.log("updated " + result + " nodes");
-            num_updated = result;
+        dao.updateNode(nodeId, update, opts, function(updated) {
+            console.log("updated " + updated + " nodes");
+            num_updated = updated;
             callback = true;
         });
         
@@ -88,11 +89,11 @@ describe("Test node dao", function() {
     it("find a node by id", function() {
         // test case vars
         var callback = false;
-        var found = null;
+        var result = null;
         
-        dao.findNodeById(nodeId, function(result) {
-            console.log("found nodes: " + result);
-            found = result;
+        dao.findNodeById(nodeId, function(found) {
+            console.log("found nodes: " + found);
+            result = found;
             callback = true;
         });
         
@@ -101,19 +102,19 @@ describe("Test node dao", function() {
         }, "callback should have been invoked");
         
         runs(function() {
-            expect(found).toBeDefined();
+            expect(result).toBeDefined();
         });
     });// find node test case
     
     it("find a node by tag", function() {
         // test case vars
         var callback = false;
-        var found = null;
+        var result = null;
         var tag = { tag: { name: "street"} }
         
-        dao.findNode(nodeId, function(result) {
-            console.log("found nodes: " + result);
-            found = result;
+        dao.findNode(nodeId, function(found) {
+            console.log("found nodes: " + found);
+            result = found;
             callback = true;
         });
         
@@ -122,7 +123,7 @@ describe("Test node dao", function() {
         }, "callback should have been invoked");
         
         runs(function() {
-            expect(found).toBeDefined();
+            expect(result).toBeDefined();
         });
     });// find node test case
     
@@ -131,9 +132,9 @@ describe("Test node dao", function() {
         var callback = false;
         var num_del = null;
         
-        dao.deleteNode(nodeId, function(result) {
-            console.log("removed " + result + " nodes");
-            num_del = result;
+        dao.deleteNode(nodeId, function(deleted) {
+            console.log("removed " + deleted + " nodes");
+            num_del = deleted;
             callback = true;
         });
         
@@ -152,9 +153,9 @@ describe("Test node dao", function() {
         var nodes;
         dao.createNode(100, 100, function(node) {
             console.log("created new node: " + node);
-            dao.findNodesWithinRadiusOf(node, 2000, function(results) {
-                console.log("found nodes " + results + " within radius");
-                nodes = results;
+            dao.findNodesWithinRadiusOf(node, 2000, function(found) {
+                console.log("found nodes " + found + " within radius");
+                nodes = found;
                 callback = true;
             });
         })
@@ -206,9 +207,9 @@ describe("Test node dao", function() {
         var update = { tags: { name : "road" } };
         var opts = {};
         
-        dao.updateWay(wayId, update, opts, function(results) {
-            console.log("updated " + results + "ways");
-            num_updated = results;
+        dao.updateWay(wayId, update, opts, function(updated) {
+            console.log("updated " + updated + "ways");
+            num_updated = updated;
             callback = true;
         });
         
@@ -224,11 +225,11 @@ describe("Test node dao", function() {
     it("find a way by id", function() {
         // test case vars
         var callback = false;
-        var found = null;
+        var result = null;
         
-        dao.findWayById(wayId, function(data) {
-            console.log(data);
-            found = data;
+        dao.findWayById(wayId, function(found) {
+            console.log("found: " + found);
+            result = found;
             callback = true;
         });
         
@@ -237,7 +238,7 @@ describe("Test node dao", function() {
         }, "callback should have been invoked");
         
         runs(function() {
-            expect(found).toBeDefined();
+            expect(result).toBeDefined();
         });
     });// find node test case
     
@@ -246,9 +247,9 @@ describe("Test node dao", function() {
         var callback = false;
         var num_del = null;
         
-        dao.deleteWay(wayId, function(data) {
-            console.log(data);
-            num_del = data;
+        dao.deleteWay(wayId, function(deleted) {
+            console.log("deleted " + deleted + " ways");
+            num_del = deleted;
             callback = true;
         });
         
@@ -279,11 +280,11 @@ describe("Test node dao", function() {
                             console.log("created way: " + wayB);
                             result = wayB;
                             callback = true;
-                        })
-                    })
-                })
-            })
-        })
+                        });
+                    });
+                });
+            });
+        });
         
         waitsFor(function() {
             return callback;
@@ -292,6 +293,103 @@ describe("Test node dao", function() {
         runs(function() {
             expect(result.nodes.length).toBe(1);
             expect(result.ways.length).toBe(1);
+        });
+    });// remove node test case
+    
+    it("create a new relation", function() {
+        var callback = false;
+        var result = null;
+
+        dao.createNode(0, 0, function(nodeA) {
+            console.log("created node: " + nodeA);
+            dao.createNode(1, 1, function(nodeB) {
+                console.log("created node: " + nodeB);
+                dao.createNode(2, 2, function(nodeC) {
+                    console.log("created node: " + nodeC);
+                    dao.createWay(nodeA, nodeB, function(wayA) {
+                        console.log("created way: " + wayA);
+                        dao.createRelation({ element: nodeA._id, role: 'inner' }, { element: wayA._id, role: 'outter' }, function(relation) {
+                            console.log("created relation: " + relation);
+                            dao.saveRelation(relation, function(save) {
+                                console.log("saved relation: " + save);
+                                result = relation;
+                                relationId = save._id;
+                                callback = true;
+                            });
+                        });
+                    });
+                });
+            });
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(result.elements.length).toBe(2);
+        });
+    });
+    
+    it("update a relation", function() {
+        // test case vars
+        var callback = false;
+        var num_updated = null;
+        var update = { tags: { name : 'test' }};
+        var opts = {};
+        
+        dao.updateRelation(relationId, update, opts, function(updated) {
+            console.log("updated " + updated + " relations");
+            num_updated = updated;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(num_updated).toBe(1);
+        });
+    });
+    
+    it("find a relation by id", function() {
+        // test case vars
+        var callback = false;
+        var result = null;
+        
+        dao.findRelationById(relationId, function(found) {
+            console.log("found: " + found);
+            result = found;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(result).toBeDefined();
+        });
+    });// find node test case
+        
+    it("remove a relation", function() {
+        // test case vars
+        var callback = false;
+        var num_del = null;
+        
+        dao.deleteRelation(relationId, function(deleted) {
+            console.log("deleted " + deleted + " relations");
+            num_del = deleted;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(num_del).toBe(1);
         });
     });// remove node test case
     
