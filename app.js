@@ -81,16 +81,14 @@ App.prototype.start = function(callback) {
     callback();
 }
 
-App.prototype.setUpDaoConnection = function(callback) {
+App.prototype.setUp = function(callback) {
     this.dao.connect(this.config['database_port'], this.config['database_address'], function() {
-        console.log("setup data access connection");
         callback();
     });
 }
 
-App.prototype.tearDownDaoConnection = function(callback) {
+App.prototype.tearDown = function(callback) {
     this.dao.disconnect(function() {
-        console.log("tore down data access connection");
         callback();
     });
 }
@@ -146,112 +144,98 @@ App.prototype.delete = function(path, handle) {
     this.addHandle(path, 'delete', handle);
 }
 
-App.prototype.getAllNodes = function(cb) {
+App.prototype.createNode = function() {
+    var args = Array.prototype.slice.call(arguments);
+    this.dao.createNode.apply(null, args);
+}
+
+App.prototype.getAllNodes = function(callback) {
     this.dao.findNode({}, function(result) {
-        cb(result);
+        callback(result);
     });
 }
 
-App.prototype.getNode = function(id, cb) {
-    if(id) {
-        this.dao.findNodeById(id, function(result) {
-           cb(result);
-       })
-   } else {
-       cb({status_code: 404, description: 'undefined id provided'});
-   }
-}
-
-App.prototype.addNode = function(node, cb) {
-    this.dao.addNode(node, function(addedNode) {
-        cb({status_code: 200, description: 'added node: ', payload: addedNode});
+App.prototype.getNode = function(id, callback) {
+    this.dao.findNodeById(id, function(result) {
+       callback(result);
     });
 }
 
-App.prototype.updateNode = function(id, update, cb) {
-   if(id) {
-        this.dao.updateNode(id, update, function(num) {
-            if(num > 0) {
-                cb({status_code : 200, description : 'updated node'});
-            } else {
-                cb({status_code : 404, description : 'no node exists with that id to update'});
-            }
-        });
-   } else { 
-       cb({status_code: 404, description: 'undefined id provided'});
-   }
-}
-
-App.prototype.removeNode = function(id, cb) {
-    if(id) {
-        this.dao.deleteNode(id, function(num) {
-            if (num > 0) {
-                cb({status_code : 200, description : 'removed node'});
-            } else {
-                cb({status_code: 404, description: 'no node exists with that id to delete'});
-            }
-        });
-    } else {
-        cb({status_code: 404, description: 'undefined id provided'});
-    }
-}
-
-App.prototype.addWay = function(way, cb) {
-    this.dao.addWay(way, function(addedWay) {
-        cb({status_code: 200, description: 'added way: ', payload: addedWay});
+App.prototype.saveNode = function(node, callback) {
+    this.dao.saveNode(node, function(savedNode) {
+        callback({status_code: 200, description: 'added node: ', payload: savedNode});
     });
 }
 
-App.prototype.getAllWays = function(cb) {
+App.prototype.updateNode = function(id, update, opts, callback) {
+    this.dao.updateNode(id, update, opts, function(num) {
+        if(num > 0) {
+            callback({status_code: 200, description: 'updated node'});
+        } else {
+            callback({status_code: 404, description: 'no node exists with that id to update'});
+        }
+    });
+}
+
+App.prototype.removeNode = function(id, callback) {
+    this.dao.deleteNode(id, function(num) {
+        if (num > 0) {
+            callback({status_code: 200, description: 'removed node'});
+        } else {
+            callback({status_code: 404, description: 'no node exists with that id to delete'});
+        }
+    });
+}
+
+App.prototype.createWay = function() {
+    var args = Array.prototype.slice.call(arguments);
+    this.dao.createWay.apply(null, args);
+}
+
+App.prototype.saveWay = function(way, callback) {
+    this.dao.saveWay(way, function(savedWay) {
+        callback({status_code: 200, description: 'added way: ', payload: savedWay});
+    });
+}
+
+App.prototype.getAllWays = function(callback) {
     this.dao.findWay({}, function(result) {
-        cb(result);
+        callback(result);
     });
 }
 
-App.prototype.getWay = function(id, cb) {
-    if(id) {
-        this.dao.findWayById(id, function(result) {
-            cb(result[0]);
-        })
-    } else {
-        cb({status_code: 404, description: 'undefined id given'});
-    }
+App.prototype.getWay = function(id, callback) {
+    this.dao.findWayById(id, function(results) {
+        callback({status_code: 404, description: 'undefined id given', payload: results[0]});
+    });
 }
 
-App.prototype.updateWay = function(id, update, cb) {
-    if(id) {
-        this.dao.updateWay(id, update, function(num) {
-            if(num > 0) {
-                cb({status_code : 200, description : 'updated way'});
-            } else {
-                cb({status_code: 404, description: 'no way exists with that id to update'});
-            }
-        });
-    } else {
-        cb({status_code: 404, description: 'undefined id given'});
-    }
+App.prototype.updateWay = function(id, update, opts, callback) {
+    this.dao.updateWay(id, update, opts, function(num) {
+        if(num > 0) {
+            callback({status_code: 200, description: 'updated way'});
+        } else {
+            callback({status_code: 404, description: 'no way exists with that id to update'});
+        }
+    });
 }
 
-App.prototype.removeWay = function(id, cb) {
-    if(id) {
-        this.dao.deleteWay(id, function(num) {
-           if(num > 0) {
-               cb({status_code : 404, description : 'removed way'});
-           } else {
-               cb({status_code: 404, description: 'no way exists with that id to delete'});
-           }
-        });
-    } else {
-        cb({status_code: 404, description: 'undefined id given'});
-    }
+App.prototype.removeWay = function(id, callback) {
+    this.dao.deleteWay(id, function(num) {
+       if(num > 0) {
+           callback({status_code: 404, description: 'removed way'});
+       } else {
+           callback({status_code: 404, description: 'no way exists with that id to delete'});
+       }
+    });
 }
 
-App.prototype.clearAllNodes = function(cb) {
-    this.dao.clearAllNodes(cb);
+App.prototype.clearAllNodes = function(callback) {
+    this.dao.clearAllNodes(callback);
 }
 
-App.prototype.clearAllWays = function(cb) {
-    this.dao.clearAllWays(cb);
+App.prototype.clearAllWays = function(callback) {
+    this.dao.clearAllWays(callback);
 }
 
 module.exports = App;

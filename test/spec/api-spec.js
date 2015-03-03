@@ -7,8 +7,6 @@
 // Dependencies
 var ballpark = require('../../ballpark');
 var app = ballpark();
-var Node = require("../../node");
-var Way = require("../../way");
 var request = require("request");
 
 /**
@@ -34,66 +32,62 @@ app.get("/nodes", function(req, resp) {
 app.get("/node", function(req, resp) {
     var id = req.params.id;
     app.getNode(id, function(node) {
-        console.log(node);
         resp.send(node);
     });
 });
 
 app.post("/node", function(req, resp) {
-    var lon = req.params.lon;
-    var lat = req.params.lat;
-    var alt = req.params.alt;
-    var acc = req.params.acc;
-    var node = new Node(lon, lat);
-    if (alt) {
-        node.addAltitude(alt);
-    }
-    if (acc) {
-        node.addAccuracy(acc);
-    }
-    if (typeof req.params.tags !== "undefined") {
-        var tags = req.params.tags.split(',');
-        for (i in tags) {
-            var tag = tags[i].toString();
-            var pair = tag.split('=');
-            node.addTag(pair[0], pair[1]);
+    var lon = req.params.longitude;
+    var lat = req.params.latitude;
+    var alt = req.params.altitude;
+    var acc = req.params.accuracy;
+    app.createNode(lon, lat, alt, acc, function(node) {
+        // parse tags
+        if (typeof req.params.tags !== "undefined") {
+            var tags = req.params.tags.split(',');
+            for (i in tags) {
+                var tag = tags[i].toString();
+                var pair = tag.split('=');
+                node.tags[pair[0]] = pair[1];
+            }
         }
-    }
-    app.addNode(node, function(addedNode) {
-        resp.send(JSON.stringify(addedNode));
+        
+        // save node
+        app.saveNode(node, function(result) {
+            resp.send(JSON.stringify(result));
+        });
     });
 });
 
 app.put("/node", function(req, resp) {
     var id = req.params.id;
-    var lon = req.params.lon;
-    var lat = req.params.lat;
     var update = {
-        longitude: lon,
-        latitude: lat
+        longitude: req.params.longitude,
+        latitude: req.params.latitude
     };
-    app.updateNode(id, update, function(num) {
-        resp.send(num);
+    var opts = {};
+    app.updateNode(id, update, opts, function(result) {
+        resp.send(result);
     });
 });
 
 app.delete("/node", function(req, resp) {
     var id = req.params.id;
-    app.removeNode(id, function(num) {
-        resp.send(num);
+    app.removeNode(id, function(result) {
+        resp.send(result);
     })
 });
 
 app.get("/ways", function(req, resp) {
-    app.getAllWays(function(ways) {
-        resp.send(ways);
+    app.getAllWays(function(result) {
+        resp.send(result);
     });
 });
 
 app.get("/way", function(req, resp) {
     var id = req.params.id;
-    app.getWay(id, function(way) {
-        resp.send(way); 
+    app.getWay(id, function(result) {
+        resp.send(result); 
     });
 });
 
@@ -103,15 +97,15 @@ app.put("/way", function(req, resp) {
     var update = {
         tags: tagz
     };
-    app.updateWay(id, update, function(num) {
-        resp.send(num);
+    app.updateWay(id, update, function(result) {
+        resp.send(result);
     });
 });
 
 app.delete("/way", function(req, resp) {
     var id = req.params.id;
-    app.removeWay(id, function(num) {
-        resp.send(num);
+    app.removeWay(id, function(result) {
+        resp.send(result);
     });
 });
 
@@ -136,19 +130,28 @@ app.start(function() {
         // Setup connection before each test case
         beforeEach(function(done) {
             counter++;
-            console.log("Beginning test: " + counter);
-            app.setUpDaoConnection(function() {
+            console.log("beginning test: " + counter);
+            app.setUp(function() {
+                console.log("setup application");
                 app.clearAllNodes(function() {
-                    var testNode = new Node(22, 333);
-                    app.addNode(testNode, function(response) {
-                        nodeId = response.payload._id;
-                        app.clearAllWays(function() {
-                            var testNodeA = new Node(99, 99);
-                            app.addNode(testNodeA, function() {
-                                var testWay = new Way(testNode, testNodeA);
-                                app.addWay(testWay, function(response) {
-                                    wayId = response.payload._id;
-                                    done();
+                    console.log("cleared all nodes");
+                    app.createNode(5, 5, function(node) {
+                        console.log("created node: " + node);
+                        app.saveNode(node, function(result) {
+                            nodeId = result.payload._id;
+                            app.clearAllWays(function() {
+                                console.log("cleared all ways");
+                                app.createNode(99, 99, function(nodeA) {
+                                   console.log("created node: " + nodeA);
+                                   app.saveNode(nodeA, function() {
+                                       app.createWay(node, nodeA, function(way) {
+                                           console.log("created way: " + way);
+                                           app.saveWay(way, function(result) {
+                                               wayId = result.payload._id;
+                                               done();
+                                           });
+                                       });
+                                   });
                                 });
                             });
                         });
@@ -159,8 +162,9 @@ app.start(function() {
 
         // Tear down connection after each test case
         afterEach(function(done) {
-            console.log("Ending test: " + counter);
-            app.tearDownDaoConnection(function() {
+            console.log("ending test: " + counter);
+            app.tearDown(function() {
+                console.log("shut down application");
                 done();
             });
         }); // end after each
@@ -199,11 +203,13 @@ app.start(function() {
         //#4
         it("should update a node", function(done) {
             // temporary hack to bypass async nodeid update
+            console.log("1");
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node";
             var body = new Object();
-            body.lat = 99;
-            body.lon = 99;
+            body.latitude = 99;
+            body.longitude = 99;
             body.id = nodeId;
+            console.log("2");
             request({
                 method: "PUT",
                 uri: url,
@@ -248,8 +254,8 @@ app.start(function() {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node";
             request.post(url, {
                 form: {
-                    lat: '150',
-                    lon: '175'
+                    latitude: '150',
+                    longitude: '175'
                 }
             }, function(err, res, body) {
                 if (err) return console.error(err);
