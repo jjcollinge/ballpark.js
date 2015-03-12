@@ -11,19 +11,22 @@ var Server = function() {
 
 Server.prototype.start = function(port, ip, callback) {
     
-    if(port == undefined) {
+    if(typeof port === undefined) {
         process.env.PORT? port = process.env.PORT: port = 3000;
     }
-    if(ip == undefined) {
-        return http.createServer(callback).listen(port, ip);
+    if(typeof ip === undefined) {
+        process.env.IP? ip = process.env.IP: ip = '127.0.0.1';
     }
-    return http.createServer(callback).listen(port, function() {
+    this.server = http.createServer(callback).listen(port, function() {
         console.log('Connected to HTTP server on port: ' + port);
     });
+    return this.server;
 }
 
-Server.prototype.stop = function() {
-    
+Server.prototype.stop = function(callback) {
+    this.server.close(function() {
+        console.log("stopped http server");
+    });
 }
 
 module.exports = Server;

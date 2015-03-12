@@ -7,31 +7,70 @@
 
 // Dependencies
 var mongoose = require('mongoose');
+var async = require('async');
 
 var Schema = mongoose.Schema,
 ObjectId = Schema.ObjectId;
 
 // Define a node schema
 var nodeSchema = new Schema({
-    longitude:  { type: Number, required: true },
-    latitude:   { type: Number, required: true },
+    longitude:  { type: Number, required: true, validate: validateLongitude },
+    latitude:   { type: Number, required: true, validate: validateLatitude },
     altitude:   { type: Number },
     accuracy:   { type: Number },
-    tags:       { type: Object }
+    heading:    { type: Number },
+    speed:      { type: Number },
+    tags:       { type: Object },
+    created:    { type : Date, default: Date.now }
 });
 
-mongoose.model('Node', nodeSchema);
+nodeSchema.path('altitude').validate(function(value) {
+    if(value === undefined) return true;
+    return (value > -10000 && value < 9000);
+}, "Invalid alititude given, unless you're in space or the middle of the earth!");
+
+nodeSchema.path('heading').validate(function(value) {
+    if(value === undefined) return true;
+    return (value >= 0 && value < 360);
+}, "Invalid heading give, value should be a degrees between 0 and 360");
+
+nodeSchema.path('accuracy').validate(function(value) {
+    if(value === undefined) return true;
+    return (value > 0 && value <= 10);
+}, "Invalid accuracy given, please give a value between 1 and 10");
+
+function validateLongitude(value) {
+    return (value > -180 && value < 180);
+}
+
+function validateLatitude(value) {
+    return (value > -90 && value < 90);
+}
+
 var Node = mongoose.model('Node', nodeSchema);
 
 // Define a way schema
 var waySchema = new Schema({
-    nodes:  [nodeSchema],
-    ways:   [waySchema],
-    tags :  { type: Object }
+    nodes:  [{type: ObjectId,
+              ref: 'Node'}],
+    ways:   [{type: ObjectId,
+              ref: 'Way'}],
+    tags:  { type: Object },
+    created:    { type : Date, default: Date.now }
 });
 
-mongoose.model('Way', waySchema);
 var Way = mongoose.model('Way', waySchema);
+
+var relationSchema = new Schema({
+    elements: [ {
+        element: { type: ObjectId, ref: 'Elements' },
+        role: { type: String }
+    }],
+    tags:   { type: Object },
+    created:    { type : Date, default: Date.now }
+});
+
+var Relation = mongoose.model('Relation', relationSchema);
 
 function Dao() {
     this.db = mongoose.connection;
@@ -66,180 +105,261 @@ Dao.prototype.isConnected = function() {
     return true;
 }
 
-// ===============Node CRUD methods===================== //
-
-Dao.prototype.addNode = function(node, cb) {
-    var _node = new Node({
-       longitude: node.lon,
-       latitude: node.lat,
-       altitude: node.alt,
-       accuracy: node.acc,
-       tags: node.tags
-    });
-    _node.save(function(err, data) {
-        if(err) {
-            return console.error(err);
-        } else {
-            console.log("Created: " + data);
-            cb(data);
-        }
-    });
-}
-
-Dao.prototype.deleteNode = function(id, cb) {
-    Node.remove({ _id: id }, function(err, data) {
-        if(err) return console.error(err);
-        else {
-            console.log("Deleted: " + data);
-            cb(data);
-        }
-    });
-}
-
-Dao.prototype.updateNode = function(id, update, cb) {
-    var opts = {};
-    Node.update({_id : id}, {$set: update}, opts, function(err, node) {
-        if(err) return console.error(err);
-        cb(node);
-    });
-}
-
-Dao.prototype.findNodeById = function(id, cb) {
-    Node.findById(id, function(err, data) {
-        if(err) return console.error(err);
-        console.log("Found: " + data);
-        return cb(data);
-    });
-}
-
-Dao.prototype.findNode = function(doc, cb) {
-    Node.find(doc, function(err, data) {
-        if(err) return console.error(err);
-        console.log("Found: " + data);
-        cb(data);
-    });
-}
-
-Dao.prototype.clearAllNodes = function(cb) {
-    Node.remove({}, function(err) { 
-        if(err) return console.error(err);
-        console.log('nodes collection removed');
-        cb();
-    });
-}
-
-// ===============Way CRUD methods===================== //
-
-Dao.prototype.addWay = function(way, cb) {
-
-    var _nodes = [];
-    var _ways = [];
+Dao.prototype.createNode = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var callback = args.pop();
     
-    // create the default way
-    var theWay = new Way({
-      nodes: [],
-      ways: [],
-      tags: way.tags
-    });
-    
-    // for each node nested in the way
-    for(var i = 0; i < way.nodes.length; i++) {
-        _nodes[i] = new Node({
-             longitude: way.nodes[i].lon,
-             latitude: way.nodes[i].lat,
-             altitude: way.nodes[i].alt,
-             accuracy: way.nodes[i].acc,
-             tags: way.nodes[i].tags
-        });
-        theWay.nodes.push(_nodes[i]);
-    }
-
-    // for each way nested in the way
-    for(var i = 0; i < way.ways.length; i++) {
-        _ways[i] = new Way({
-             nodes: way.ways[i].nodes,
-             ways: way.ways[i].ways,
-             tags: way.ways[i].tags
-        });
-        theWay.ways.push(_ways[i]);
+    switch(args.length) {
+        case 2:
+            var node = new Node({
+               longitude: args[0],
+               latitude: args[1],
+               tags: {}
+            });
+            break;
+        case 3:
+            var node = new Node({
+               longitude: args[0],
+               latitude: args[1],
+               altitude: args[2],
+               tags: {}
+            });
+            break;
+        case 4:
+            var node = new Node({
+               longitude: args[0],
+               latitude: args[1],
+               altitude: args[2],
+               accuracy: args[3],
+               tags: {}
+            });
+            break;
+        default:
+            return console.error("invalid number of arguments provided");
     }
     
-    console.dir(theWay);
-    
-    // save the way
-    theWay.save(function(err, data) {
-        if(err) return console.error(err);
-        else {
-            console.log("Created: " + data);
-            cb(data);
-        }
+    if(node.latitude < -90 || node.latitude > 90 || node.longitude < -180 || node.longitude > 180) {
+        return console.error("invalid geo location provided");
+    } else {
+        callback(node);
+    }
+}
+
+Dao.prototype.saveNode = function(node, callback) {
+    node.save(function(err, results) {
+       if(err) return console.error(err);
+       callback(results);
     });
 }
 
-Dao.prototype.deleteWay = function(id, cb) {
-    Way.remove({ _id: id }, function(err, data) {
+Dao.prototype.deleteNode = function(id, callback) {
+    Node.remove({ _id: id }, function(err, results) {
         if(err) return console.error(err);
-        else {
-            console.log("Deleted: " + data);
-            cb(data);
-        }
+        callback(results);
+    })
+}
+
+Dao.prototype.updateNode = function(id, update, opts, callback) {
+    Node.update({_id : id}, {$set: update}, opts, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
     });
 }
 
-Dao.prototype.updateWay = function(id, update, cb) {
-    var opts = {};
-    Way.update({_id : id}, {$set: update}, opts, function(err, data) {
+Dao.prototype.findNodeById = function(id, callback) {
+    Node.findById(id, function(err, results) {
         if(err) return console.error(err);
-        console.log("Updated: " + data);
-        cb(data);
+        return callback(results);
     });
 }
 
-Dao.prototype.findWayById = function(id, cb) {
-    Way.find({ _id: id }, function(err, data) {
+Dao.prototype.findNode = function(doc, callback) {
+    Node.find(doc, function(err, results) {
         if(err) return console.error(err);
-        console.log("Found: " + data);
-        cb(data);
+        callback(results);
     });
 }
 
-Dao.prototype.findWay = function(doc, cb) {
-    Way.find(doc, function(err, data) {
-        if(err) return console.error(err);
-        console.log("Found: " + data);
-        cb(data);
-    });
-}
-
-Dao.prototype.clearAllWays = function(cb) {
-    Way.remove({}, function(err) { 
-        if(err) return console.error(err);
-       console.log('way collection removed');
-       cb();
-    });
-}
-
-// ===============Utility methods===================== //
-
-// find nodes within bounding box in order of closest first
-Dao.prototype.findNodesWithinRadiusOf = function(src, radius, cb) {
-    var minLon = src.lon - radius;
-    var maxLon = src.lon + radius;
-    var minLat = src.lat - radius;
-    var maxLat = src.lat + radius;
+Dao.prototype.findNodesWithinRadiusOf = function(src, radius, callback) {
+    var minLon = src.longitude - radius;
+    var maxLon = src.longitude + radius;
+    var minLat = src.latitude - radius;
+    var maxLat = src.latitude + radius;
     
     Node.find({ longitude: { $gt: minLon, $lt: maxLon },
                 latitude: { $gt: minLat, $lt: maxLat }
-    }, function(err, data) {
-        if(data != undefined) {
-            data.sort(function(a, b) {
-            var disA = src.distanceTo(a);
-            var disB = src.distanceTo(b);
-            
-            return disA - disB;
-            });
+    }, function(err, result) {
+        callback(result);
+    });
+}
+
+Dao.prototype.findNodesWithinBoundingBox = function(bottomLeft, topRight, callback) {
+    var minLon = bottomLeft.longitude;
+    var maxLon = topRight.longitude;
+    var minLat = bottomLeft.latitude;
+    var maxLat = topRight.latitude;
+    
+    Node.find({ longitude: { $gt: minLon, $lt: maxLon },
+                latitude: { $gt: minLat, $lt: maxLat }
+    }, function(err, result) {
+        callback(result);
+    });
+}
+
+Dao.prototype.clearAllNodes = function(callback) {
+    Node.remove({}, function(err) { 
+        if(err) return console.error(err);
+        callback();
+    });
+}
+
+Dao.prototype.createWay = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var callback = args.pop();
+    
+    var nodeArgs = [];
+    var wayArgs = [];
+    
+    for(index in args) {
+        if(args[index] instanceof Node) {
+            nodeArgs.push(args[index]);
+        } else if(args[index] instanceof Way){
+            wayArgs.push(args[index]);
+        } else {
+            callback("an argument has an unsupported type: " + args[index].constructor);
         }
-        cb(data);
+    }
+    
+    var way = new Way({
+        nodes: nodeArgs,
+        ways: wayArgs,
+        tags: {}
+    });
+    callback(way);
+}
+
+Dao.prototype.saveWay = function(way, callback) {
+    way.save(function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.deleteWay = function(id, callback) {
+    Way.remove({ _id: id }, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.updateWay = function(id, update, opts, callback) {
+    Way.update({_id : id}, {$set: update}, opts, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.findWayById = function(id, callback) {
+    Way.find({ _id: id }, function(err, results) {
+        if(err) return console.error(err);
+        return callback(results);
+    });
+}
+
+Dao.prototype.findWay = function(doc, callback) {
+    Way.find(doc, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.findWaysWithinRadiusOf = function(src, radius, callback) {
+    var minLon = src.longitude - radius;
+    var maxLon = src.longitude + radius;
+    var minLat = src.latitude - radius;
+    var maxLat = src.latitude + radius;
+    
+    Way.find({ longitude: { $gt: minLon, $lt: maxLon },
+                latitude: { $gt: minLat, $lt: maxLat }
+    }, function(err, result) {
+        callback(result);
+    });
+}
+
+Dao.prototype.findWaysWithinBoundingBox = function(bottomLeft, topRight, callback) {
+    var minLon = bottomLeft.longitude;
+    var maxLon = topRight.longitude;
+    var minLat = bottomLeft.latitude;
+    var maxLat = topRight.latitude;
+    
+    Way.find({ longitude: { $gt: minLon, $lt: maxLon },
+                latitude: { $gt: minLat, $lt: maxLat }
+    }, function(err, result) {
+        callback(result);
+    });
+}
+
+Dao.prototype.clearAllWays = function(callback) {
+    Way.remove({}, function(err) { 
+        if(err) return console.error(err);
+       callback();
+    });
+}
+
+Dao.prototype.createRelation = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var callback = args.pop();
+    
+    var relation = new Relation({
+        elements: [],
+        tags: {}
+    });
+    
+    for(index in args) {
+        relation.elements.push(args[index]);
+    }
+    callback(relation);
+}
+
+Dao.prototype.saveRelation = function(relation, callback) {
+    relation.save(function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.deleteRelation = function(id, callback) {
+    Relation.remove({ _id: id }, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.updateRelation = function(id, update, opts, callback) {
+    Relation.update({ _id : id }, {$set: update}, opts, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.findRelation = function(doc, callback) {
+    Relation.find(doc, function(err, results) {
+        if(err) return console.error(err);
+        callback(results);
+    });
+}
+
+Dao.prototype.findRelationById = function(id, callback) {
+    Relation.find( { _id: id }, function(err, results) {
+        if(err) return console.error(err);
+        return callback(results);
+    });
+}
+
+Dao.prototype.clearAllRelations = function(callback) {
+    Relation.remove({}, function(err) { 
+        if(err) return console.error(err);
+       callback();
     });
 }
 
