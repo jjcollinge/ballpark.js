@@ -286,4 +286,20 @@ App.prototype.clearAllRelations = function(callback) {
     this.dao.clearAllRelations(callback);
 }
 
+App.prototype.findNodesWithinRadiusOf = function(node, radius, callback) {
+    this.dao.findNodesWithinRadiusOf(node, radius, callback);
+}
+
+App.prototype.findNodesWithinBoundingBox = function(bottomLeftNode, topRightNode, callback) {
+    this.dao.findNodesWithinBoundingBox(bottomLeftNode, topRightNode, callback);
+}
+
+App.prototype.findWaysWithinRadiusOf = function(node, radius, callback) {
+    this.dao.findWaysWithinRadiusOf(node, radius, callback);
+}
+
+App.prototype.findWaysWithinBoundingBox = function(bottomLeftNode, topRightNode, callback) {
+    this.dao.findWaysWithinBoundingBox(bottomLeftNode, topRightNode, callback);
+}
+
 module.exports = App;

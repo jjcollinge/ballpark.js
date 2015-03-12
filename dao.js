@@ -14,12 +14,38 @@ ObjectId = Schema.ObjectId;
 
 // Define a node schema
 var nodeSchema = new Schema({
-    longitude:  { type: Number, required: true },
-    latitude:   { type: Number, required: true },
+    longitude:  { type: Number, required: true, validate: validateLongitude },
+    latitude:   { type: Number, required: true, validate: validateLatitude },
     altitude:   { type: Number },
     accuracy:   { type: Number },
-    tags:       { type: Object }
+    heading:    { type: Number },
+    speed:      { type: Number },
+    tags:       { type: Object },
+    created:    { type : Date, default: Date.now }
 });
+
+nodeSchema.path('altitude').validate(function(value) {
+    if(value === undefined) return true;
+    return (value > -10000 && value < 9000);
+}, "Invalid alititude given, unless you're in space or the middle of the earth!");
+
+nodeSchema.path('heading').validate(function(value) {
+    if(value === undefined) return true;
+    return (value >= 0 && value < 360);
+}, "Invalid heading give, value should be a degrees between 0 and 360");
+
+nodeSchema.path('accuracy').validate(function(value) {
+    if(value === undefined) return true;
+    return (value > 0 && value <= 10);
+}, "Invalid accuracy given, please give a value between 1 and 10");
+
+function validateLongitude(value) {
+    return (value > -180 && value < 180);
+}
+
+function validateLatitude(value) {
+    return (value > -90 && value < 90);
+}
 
 var Node = mongoose.model('Node', nodeSchema);
 
@@ -29,7 +55,8 @@ var waySchema = new Schema({
               ref: 'Node'}],
     ways:   [{type: ObjectId,
               ref: 'Way'}],
-    tags:  { type: Object }
+    tags:  { type: Object },
+    created:    { type : Date, default: Date.now }
 });
 
 var Way = mongoose.model('Way', waySchema);
@@ -39,7 +66,8 @@ var relationSchema = new Schema({
         element: { type: ObjectId, ref: 'Elements' },
         role: { type: String }
     }],
-    tags:   { type: Object }
+    tags:   { type: Object },
+    created:    { type : Date, default: Date.now }
 });
 
 var Relation = mongoose.model('Relation', relationSchema);
@@ -110,7 +138,7 @@ Dao.prototype.createNode = function() {
             return console.error("invalid number of arguments provided");
     }
     
-    if(node.longitude < -180 || node.longitude > 180 || node.latitude < -180 || node.latitude > 180) {
+    if(node.latitude < -90 || node.latitude > 90 || node.longitude < -180 || node.longitude > 180) {
         return console.error("invalid geo location provided");
     } else {
         callback(node);
@@ -157,6 +185,19 @@ Dao.prototype.findNodesWithinRadiusOf = function(src, radius, callback) {
     var maxLon = src.longitude + radius;
     var minLat = src.latitude - radius;
     var maxLat = src.latitude + radius;
+    
+    Node.find({ longitude: { $gt: minLon, $lt: maxLon },
+                latitude: { $gt: minLat, $lt: maxLat }
+    }, function(err, result) {
+        callback(result);
+    });
+}
+
+Dao.prototype.findNodesWithinBoundingBox = function(bottomLeft, topRight, callback) {
+    var minLon = bottomLeft.longitude;
+    var maxLon = topRight.longitude;
+    var minLat = bottomLeft.latitude;
+    var maxLat = topRight.latitude;
     
     Node.find({ longitude: { $gt: minLon, $lt: maxLon },
                 latitude: { $gt: minLat, $lt: maxLat }
@@ -229,6 +270,32 @@ Dao.prototype.findWay = function(doc, callback) {
     Way.find(doc, function(err, results) {
         if(err) return console.error(err);
         callback(results);
+    });
+}
+
+Dao.prototype.findWaysWithinRadiusOf = function(src, radius, callback) {
+    var minLon = src.longitude - radius;
+    var maxLon = src.longitude + radius;
+    var minLat = src.latitude - radius;
+    var maxLat = src.latitude + radius;
+    
+    Way.find({ longitude: { $gt: minLon, $lt: maxLon },
+                latitude: { $gt: minLat, $lt: maxLat }
+    }, function(err, result) {
+        callback(result);
+    });
+}
+
+Dao.prototype.findWaysWithinBoundingBox = function(bottomLeft, topRight, callback) {
+    var minLon = bottomLeft.longitude;
+    var maxLon = topRight.longitude;
+    var minLat = bottomLeft.latitude;
+    var maxLat = topRight.latitude;
+    
+    Way.find({ longitude: { $gt: minLon, $lt: maxLon },
+                latitude: { $gt: minLat, $lt: maxLat }
+    }, function(err, result) {
+        callback(result);
     });
 }
 

@@ -173,7 +173,7 @@ app.start(function() {
                             nodeId = result.payload._id;
                             app.clearAllWays(function() {
                                 console.log("cleared all ways");
-                                app.createNode(99, 99, function(nodeA) {
+                                app.createNode(20, 20, function(nodeA) {
                                    console.log("created node: " + nodeA);
                                    app.saveNode(nodeA, function() {
                                        app.createWay(node, nodeA, function(way) {
@@ -247,8 +247,8 @@ app.start(function() {
             console.log("1");
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node";
             var body = new Object();
-            body.latitude = 99;
-            body.longitude = 99;
+            body.latitude = 20;
+            body.longitude = 20;
             body.id = nodeId;
             console.log("2");
             request({
@@ -295,8 +295,8 @@ app.start(function() {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node";
             request.post(url, {
                 form: {
-                    latitude: '150',
-                    longitude: '175'
+                    latitude: 70,
+                    longitude: 175
                 }
             }, function(err, res, body) {
                 if (err) return console.error(err);

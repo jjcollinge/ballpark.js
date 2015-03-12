@@ -64,6 +64,31 @@ describe("Test node dao", function() {
         });
     });// creating node test case
     
+    it("creating an animated node", function() {
+        // test case vars
+        var callback = false;
+        var heading = null;
+        dao.createNode(0, 0, function(node) {
+            console.log("created node: " + node);
+            node.heading = 200;
+            node.speed = 10;
+            node.tags['name'] = 'street';
+            dao.saveNode(node, function(result) {
+                console.log("saved node with id: " + result._id);
+                heading = result.heading;
+                callback = true;
+            });
+        });
+
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(heading).toBe(200);
+        });
+    });// creating animated node test case
+    
     it("updating a node", function() {
         // test case vars
         var callback = false;
@@ -151,13 +176,39 @@ describe("Test node dao", function() {
         // test case vars
         var callback = false;
         var nodes;
-        dao.createNode(100, 100, function(node) {
+        dao.createNode(12, 15, function(node) {
             console.log("created new node: " + node);
-            dao.findNodesWithinRadiusOf(node, 2000, function(found) {
+            dao.findNodesWithinRadiusOf(node, 100, function(found) {
                 console.log("found nodes " + found + " within radius");
                 nodes = found;
                 callback = true;
             });
+        })
+
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(nodes).toBeDefined();
+        });
+    })
+    
+    it("find node within bounding box", function() {
+        // test case vars
+        var callback = false;
+        var nodes;
+        dao.createNode(55, 55, function(bottomLeft) {
+            console.log("created new node: " + bottomLeft);
+            dao.createNode(50, 50, function(topRight) {
+                console.log("created new node: " + topRight);
+                dao.findNodesWithinBoundingBox(bottomLeft, topRight, function(found) {
+                    console.log("found nodes " + found + " within radius");
+                    nodes = found;
+                    callback = true;
+                });
+            })
+            
         })
 
         waitsFor(function() {
