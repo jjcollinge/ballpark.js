@@ -363,4 +363,14 @@ Dao.prototype.clearAllRelations = function(callback) {
     });
 }
 
+Dao.prototype.mapReduce = function(o, model, callback) {
+    if(model === "Node") {
+        Node.mapReduce(o, callback);
+    } else if(model === "Way") {
+        Way.mapReduce(o, callback);
+    } else if(model === "Relation") {
+        Relation.mapReduce(o, callback);
+    }
+}
+
 module.exports = Dao;

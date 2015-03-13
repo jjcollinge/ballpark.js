@@ -444,4 +444,59 @@ describe("Test node dao", function() {
         });
     });// remove node test case
     
+    it("perform mapreduce on all values", function() {
+        // test case vars
+        var callback = false;
+        var res = null;
+        
+        var o = {};
+        //o.map = function () { emit(this._id, { longitude: this.longitude...}) };
+        // produce a key value pair for same items
+        o.map = function () { emit(this.longitude, 1) };
+        // receives a list of all values for each unique key
+        o.reduce = function (key, values) { return values.length };
+        
+        dao.mapReduce(o, "Node", function(err, results) {
+            if(err) console.error(err);
+            console.log(results);
+            res = results.length;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(res).toBeDefined();
+        });
+    });// mapreduce test case
+    
+    it("perform mapreduce on specific values", function() {
+        // test case vars
+        var callback = false;
+        var res = null;
+        
+        var o = {};
+        //o.map = function () { emit(this._id, { longitude: this.longitude...}) };
+        o.map = function () { emit(this.longitude, 1) };
+        o.reduce = function (key, values) { return values.length };
+        o.query = { longitude : { $lt : 10 } };
+        
+        dao.mapReduce(o, "Node", function(err, results) {
+            if(err) console.error(err);
+            console.log(results);
+            res = results.length;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(res).toBeDefined();
+        });
+    });// mapreduce test case
+    
 });// describe
