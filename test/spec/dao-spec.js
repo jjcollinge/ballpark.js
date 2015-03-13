@@ -14,6 +14,13 @@ describe("Test node dao", function() {
         var connected = false;
         runs(function () {
             dao.connect(27017, process.env.IP, function() {
+                // dao.clearAllNodes(function() {
+                //     dao.clearAllWays(function() {
+                //         dao.clearAllRelations(function() {
+                //             connected = true;
+                //         });
+                //     });
+                // });
                 connected = true;
             });
         });
@@ -444,7 +451,7 @@ describe("Test node dao", function() {
         });
     });// remove node test case
     
-    it("perform mapreduce on all values", function() {
+    it("perform mapreduce on all nodes", function() {
         // test case vars
         var callback = false;
         var res = null;
@@ -472,7 +479,7 @@ describe("Test node dao", function() {
         });
     });// mapreduce test case
     
-    it("perform mapreduce on specific values", function() {
+    it("perform mapreduce on specific nodes", function() {
         // test case vars
         var callback = false;
         var res = null;
@@ -496,6 +503,31 @@ describe("Test node dao", function() {
         
         runs(function() {
             expect(res).toBeDefined();
+        });
+    });// mapreduce test case
+    
+    it("perform each on all nodes", function() {
+        // test case vars
+        var callback = false;
+        var result = null;
+        var sum = 0;
+        
+        // sum nodes
+        dao.each("Node", { longitude : { $lt : 10 } }, {},
+        function(val) {
+            sum += val;
+        }, function(results) {
+            console.log(sum);
+            result = sum;
+            callback = true;
+        });
+        
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        
+        runs(function() {
+            expect(result).toBeLessThan(1000);
         });
     });// mapreduce test case
     

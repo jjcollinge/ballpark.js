@@ -373,4 +373,22 @@ Dao.prototype.mapReduce = function(o, model, callback) {
     }
 }
 
+Dao.prototype.each = function(model, query, opts, func, callback) {
+    var results = [];
+    if(model === "Node") {
+        Node.find(query, function(err, cursor) {
+            if(err) return console.error(err);
+            var docCount = cursor.length;
+            cursor.forEach(function(error, doc) {
+                if(err) return console.error(err);
+                results.push(func(doc));
+                docCount--;
+                if(docCount === 0) {
+                    callback(results);
+                }
+            });
+        });
+    }
+}
+
 module.exports = Dao;
