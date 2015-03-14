@@ -75,7 +75,13 @@ app.delete("/node", function(req, resp) {
     var id = req.params.id;
     app.removeNode(id, function(result) {
         resp.send(result);
-    })
+    });
+});
+
+app.get("/nodes/count", function(req, resp) {
+   app.getNodeCount(function(sum) {
+       resp.send(sum);
+   }); 
 });
 
 app.get("/ways", function(req, resp) {
@@ -109,6 +115,12 @@ app.delete("/way", function(req, resp) {
     });
 });
 
+app.get("/ways/count", function(req, resp) {
+   app.getWayCount(function(sum) {
+       resp.send(sum);
+   }); 
+});
+
 app.get("/relations", function(req, resp) {
     app.getAllRelations(function(result) {
         resp.send(result);
@@ -138,6 +150,12 @@ app.delete("/relation", function(req, resp) {
     app.removeRelation(id, function(result) {
         resp.send(result);
     });
+});
+
+app.get("/relations/count", function(req, resp) {
+   app.getWayCount(function(sum) {
+       resp.send(sum);
+   }); 
 });
 
 app.get("/hello", function(req, resp) {
@@ -413,6 +431,45 @@ app.start(function() {
             }, function(err, res, body) {
                 if (err) return console.error(err);
                 expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+        
+        //#16
+        it("should display the count of nodes", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/nodes/count";
+            request.get(url, function(err, res, body) {
+                if (err) return console.error(err);
+                console.log("***node count***");
+                var json = JSON.parse(body);
+                console.log(json);
+                expect(json.count).toBe(2);
+                done();
+            });
+        });
+        
+        //#17
+        it("should display the count of ways", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/ways/count";
+            request.get(url, function(err, res, body) {
+                if (err) return console.error(err);
+                console.log("***node way***");
+                var json = JSON.parse(body);
+                console.log(json);
+                expect(json.count).toBe(1);
+                done();
+            });
+        });
+        
+        //#18
+        it("should display the count of relations", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/relations/count";
+            request.get(url, function(err, res, body) {
+                if (err) return console.error(err);
+                console.log("***node relations***");
+                var json = JSON.parse(body);
+                console.log(json);
+                expect(json.count).toBe(1);
                 done();
             });
         });

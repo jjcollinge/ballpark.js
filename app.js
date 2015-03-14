@@ -188,6 +188,37 @@ App.prototype.removeNode = function(id, callback) {
     });
 }
 
+App.prototype.getNodeCount = function(callback) {
+    var sum = 0;
+    this.dao.each("Node", {}, {},
+        function(val) {
+            return sum += 1;
+        }, function(results) {
+            // ignore results...
+            callback({status_code: 200, count: sum});
+        });
+}
+
+App.prototype.getWayCount = function(callback) {
+    var sum = 0;
+    this.dao.each("Way", {}, {},
+        function(val) {
+            return sum += 1;
+        }, function(results) {
+            callback({status_code: 200, count: sum});
+        });
+}
+
+App.prototype.getRelationCount = function(callback) {
+    var sum = 0;
+    this.dao.each("Relation", {}, {},
+        function(val) {
+            return sum += 1;
+        }, function(results) {
+            callback({status_code: 200, count: sum});
+        });
+}
+
 App.prototype.createWay = function() {
     var args = Array.prototype.slice.call(arguments);
     this.dao.createWay.apply(null, args);

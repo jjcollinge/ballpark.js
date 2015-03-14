@@ -517,7 +517,7 @@ describe("Test node dao", function() {
         function(val) {
             sum += val;
         }, function(results) {
-            console.log(sum);
+            console.log(results);
             result = sum;
             callback = true;
         });
@@ -530,5 +530,6 @@ describe("Test node dao", function() {
             expect(result).toBeLessThan(1000);
         });
     });// mapreduce test case
+    
     
 });// describe

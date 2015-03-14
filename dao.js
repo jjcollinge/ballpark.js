@@ -379,6 +379,7 @@ Dao.prototype.each = function(model, query, opts, func, callback) {
         Node.find(query, function(err, cursor) {
             if(err) return console.error(err);
             var docCount = cursor.length;
+            console.log(cursor);
             cursor.forEach(function(error, doc) {
                 if(err) return console.error(err);
                 results.push(func(doc));
@@ -388,6 +389,36 @@ Dao.prototype.each = function(model, query, opts, func, callback) {
                 }
             });
         });
+    } else if(model === "Way") {
+        Way.find(query, function(err, cursor) {
+            if(err) return console.error(err);
+            var docCount = cursor.length;
+            console.log(cursor);
+            cursor.forEach(function(error, doc) {
+                if(err) return console.error(err);
+                results.push(func(doc));
+                docCount--;
+                if(docCount === 0) {
+                    callback(results);
+                }
+            });
+        });
+    } else if(model === "Relation") {
+        Relation.find(query, function(err, cursor) {
+            if(err) return console.error(err);
+            var docCount = cursor.length;
+            console.log(cursor);
+            cursor.forEach(function(error, doc) {
+                if(err) return console.error(err);
+                results.push(func(doc));
+                docCount--;
+                if(docCount === 0) {
+                    callback(results);
+                }
+            });
+        });
+    } else {
+        callback(undefined);
     }
 }
 
