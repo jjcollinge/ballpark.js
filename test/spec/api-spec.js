@@ -36,6 +36,14 @@ app.get("/node", function(req, resp) {
     });
 });
 
+app.get("/node/xml", function(req, resp) {
+    var id = req.params.id;
+    app.getNode(id, function(node) {
+        resp.format = 'xml';
+        resp.send(node);
+    });
+});
+
 app.post("/node", function(req, resp) {
     var lon = req.params.longitude;
     var lat = req.params.latitude;
@@ -440,7 +448,6 @@ app.start(function() {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/nodes/count";
             request.get(url, function(err, res, body) {
                 if (err) return console.error(err);
-                console.log("***node count***");
                 var json = JSON.parse(body);
                 console.log(json);
                 expect(json.count).toBe(2);
@@ -453,7 +460,6 @@ app.start(function() {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/ways/count";
             request.get(url, function(err, res, body) {
                 if (err) return console.error(err);
-                console.log("***node way***");
                 var json = JSON.parse(body);
                 console.log(json);
                 expect(json.count).toBe(1);
@@ -466,10 +472,20 @@ app.start(function() {
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/relations/count";
             request.get(url, function(err, res, body) {
                 if (err) return console.error(err);
-                console.log("***node relations***");
                 var json = JSON.parse(body);
                 console.log(json);
                 expect(json.count).toBe(1);
+                done();
+            });
+        });
+        
+        //#19
+        it("get node in xml", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node/xml?id=" + nodeId;
+            request.get(url, function(err, res, body) {
+                if (err) return console.error(err);
+                console.log(body);
+                expect(res.statusCode).toBe(200);
                 done();
             });
         });
