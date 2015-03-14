@@ -30,6 +30,15 @@ app.get("/node", function(req, resp) {
     });
 });
 
+app.get("/node/xml", function(req, resp) {
+    console.log("get@node/xml");
+    var id = req.params.id;
+    app.getNode(id, function(node) {
+        resp.format = 'xml';
+        resp.send(node);
+    });
+});
+
 app.post("/node", function(req, resp) {
     console.log("post@node");
     var lon = req.params.longitude;
