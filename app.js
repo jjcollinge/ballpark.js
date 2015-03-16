@@ -17,13 +17,14 @@ var querystring = require("querystring");
  **/
 function App() {
     this.server = new Server();
-    this.dao = new Dao();
     this.handles = {};
+    this.dao = new Dao.Dao();
     this.config = {
         'webserver_address': process.env.IP,
         'webserver_port': process.env.PORT,
         'database_address': process.env.IP,
-        'database_port': 27017
+        'database_port': 27017,
+        'api_root': '/api'
     };
     this.ready = false;
 }
@@ -87,7 +88,6 @@ App.prototype.start = function(callback) {
     }
     
     this.server.start(this.config['webserver_port'], this.config['webserver_address'], requestListener);
-    console.log("started listening on server: " + "http://" + this.config['webserver_address'] + ':' + this.config['webserver_port']);
     callback();
 }
 
@@ -142,7 +142,8 @@ function parsePut(req, callback) {
  * path.
  **/
 App.prototype.addHandle= function(path, method, handle) {
-     var currentHandle = this.handles[path];
+    path = this.config.api_root + path;
+    var currentHandle = this.handles[path];
     if(typeof currentHandle === "undefined") {
         currentHandle = {};
     }
@@ -178,323 +179,17 @@ App.prototype.delete = function(path, handle) {
     this.addHandle(path, 'delete', handle);
 }
 
-/**
- * Create a Node object
- **/
-App.prototype.createNode = function() {
-    var args = Array.prototype.slice.call(arguments);
-    this.dao.createNode.apply(null, args);
+App.prototype.clearData = function(callback) {
+    this.dao.clearData(callback);
 }
 
-/**
- * Get all available nodes
- **/
-App.prototype.getAllNodes = function(callback) {
-    this.dao.findNode({}, function(result) {
-        callback(result);
-    });
+App.prototype.isEmpty = function(obj, callback) {
+    return Object.keys(obj).length;
 }
 
-/**
- * Get a node by id
- **/
-App.prototype.getNode = function(id, callback) {
-    try {
-        this.dao.findNodeById(id, function(result) {
-           callback(result);
-        });
-    } catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Save a node
- **/
-App.prototype.saveNode = function(node, callback) {
-    this.dao.saveNode(node, function(savedNode) {
-        callback({status_code: 200, description: 'stored node', payload: savedNode});
-    });
-}
-
-/**
- * Update a node
- **/ 
-App.prototype.updateNode = function(id, update, opts, callback) {
-    try {
-        this.dao.updateNode(id, update, opts, function(num) {
-            if(num > 0) {
-                callback({status_code: 200, description: 'updated node'});
-            } else {
-                callback({status_code: 404, description: 'no node exists with that id to update'});
-            }
-        });
-    } catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Remove a node
- **/ 
-App.prototype.removeNode = function(id, callback) {
-    try {
-        this.dao.deleteNode(id, function(num) {
-            if (num > 0) {
-                callback({status_code: 200, description: 'removed node'});
-            } else {
-                callback({status_code: 404, description: 'no node exists with that id to delete'});
-            }
-        });
-    } catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Get the total number of nodes
- **/ 
-App.prototype.getNodeCount = function(callback) {
-    var sum = 0;
-    this.dao.each("Node", {}, {},
-        function(val) {
-            return sum += 1;
-        }, function(results) {
-            // ignore results...
-            callback({status_code: 200, count: sum});
-        });
-}
-
-/**
- * Get the total number of ways
- **/
-App.prototype.getWayCount = function(callback) {
-    var sum = 0;
-    this.dao.each("Way", {}, {},
-        function(val) {
-            return sum += 1;
-        }, function(results) {
-            callback({status_code: 200, count: sum});
-        });
-}
-
-/**
- * Get the total number of relations
- **/
-App.prototype.getRelationCount = function(callback) {
-    var sum = 0;
-    this.dao.each("Relation", {}, {},
-        function(val) {
-            return sum += 1;
-        }, function(results) {
-            callback({status_code: 200, count: sum});
-        });
-}
-
-/**
- * Create a way object
- **/
-App.prototype.createWay = function() {
-    var args = Array.prototype.slice.call(arguments);
-    this.dao.createWay.apply(null, args);
-}
-
-/**
- * Save a way
- **/
-App.prototype.saveWay = function(way, callback) {
-    this.dao.saveWay(way, function(savedWay) {
-        callback({status_code: 200, description: 'stored way', payload: savedWay});
-    });
-}
-
-/**
- * Get all available ways
- **/
-App.prototype.getAllWays = function(callback) {
-    this.dao.findWay({}, function(result) {
-        callback(result);
-    });
-}
-
-/**
- * Get a way by id
- **/
-App.prototype.getWay = function(id, callback) {
-    try {
-        this.dao.findWayById(id, function(results) {
-            callback(results[0]);
-        });
-    } catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Update an existing way
- **/
-App.prototype.updateWay = function(id, update, opts, callback) {
-    try {
-        this.dao.updateWay(id, update, opts, function(num) {
-            if(num > 0) {
-                callback({status_code: 200, description: 'updated way'});
-            } else {
-                callback({status_code: 404, description: 'no way exists with that id to update'});
-            }
-        });
-    }  catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Remove a way
- **/
-App.prototype.removeWay = function(id, callback) {
-    try {
-        this.dao.deleteWay(id, function(num) {
-           if(num > 0) {
-               callback({status_code: 200, description: 'removed way'});
-           } else {
-               callback({status_code: 404, description: 'no way exists with that id to delete'});
-           }
-        });
-    }  catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Create a relation object
- **/
-App.prototype.createRelation = function() {
-    var args = Array.prototype.slice.call(arguments);
-    this.dao.createRelation.apply(null, args);
-}
-
-/**
- * Save a relation
- **/
-App.prototype.saveRelation = function(relation, callback) {
-    this.dao.saveRelation(relation, function(savedRelation) {
-        callback({status_code: 200, description: 'stored relation', payload: savedRelation});
-    });
-}
-
-/**
- * Get all available relations
- **/
-App.prototype.getAllRelations = function(callback) {
-    this.dao.findRelation({}, function(result) {
-        callback(result);
-    });
-}
-
-/**
- * Get a relation by id
- **/
-App.prototype.getRelation = function(id, callback) {
-    try {
-        this.dao.findRelationById(id, function(results) {
-            callback(results[0]);
-        });
-    } catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Update an existing relation
- **/
-App.prototype.updateRelation = function(id, update, opts, callback) {
-    try {
-        this.dao.updateRelation(id, update, opts, function(num) {
-            if(num > 0) {
-                callback({status_code: 200, description: 'updated relation'});
-            } else {
-                callback({status_code: 404, description: 'no relation exists with that id to update'});
-            }
-        });
-    } catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Remove a relation
- **/
-App.prototype.removeRelation = function(id, callback) {
-    try {
-        this.dao.deleteRelation(id, function(num) {
-           if(num > 0) {
-               callback({status_code: 200, description: 'removed relation'});
-           } else {
-               callback({status_code: 404, description: 'no relation exists with that id to delete'});
-           }
-        });
-    } catch(e) {
-        callback({status_code: 500, description: 'invalid id given'});
-    }
-}
-
-/**
- * Clear all saved nodes
- **/
-App.prototype.clearAllNodes = function(callback) {
-    this.dao.clearAllNodes(callback);
-}
-
-/**
- * Clear all saved ways
- **/
-App.prototype.clearAllWays = function(callback) {
-    this.dao.clearAllWays(callback);
-}
-
-/**
- * Clear all saved relations
- **/
-App.prototype.clearAllRelations = function(callback) {
-    this.dao.clearAllRelations(callback);
-}
-
-/**
- * Find nodes within a radius of a given node
- **/
-App.prototype.findNodesWithinRadiusOf = function(node, radius, callback) {
-    this.dao.findNodesWithinRadiusOf(node, radius, callback);
-}
-
-/**
- * Find nodes within a given bounding box
- **/
-App.prototype.findNodesWithinBoundingBox = function(bottomLeftNode, topRightNode, callback) {
-    this.dao.findNodesWithinBoundingBox(bottomLeftNode, topRightNode, callback);
-}
-
-/**
- * Find nodes within a given bounding box
- **/
-App.prototype.findNodesWithinBoundingBox = function(bottomLeftLongitude, bottomLeftLatitude, topRightLongitude, topRightLatitude, callback) {
-    this.dao.createNode(bottomLeftLongitude, bottomLeftLatitude, function(bottomLeftNode) {
-        this.dao.createNode(topRightLongitude, topRightLatitude, function(topRightNode) {
-            this.dao.findNodesWithinBoundingBox(bottomLeftNode, topRightNode, callback);
-        });
-    });
-}
-
-/**
- * Find ways within a radius of a given way
- **/
-App.prototype.findWaysWithinRadiusOf = function(node, radius, callback) {
-    this.dao.findWaysWithinRadiusOf(node, radius, callback);
-}
-
-/**
- * Find ways within a given bounding box
- **/
-App.prototype.findWaysWithinBoundingBox = function(bottomLeftNode, topRightNode, callback) {
-    this.dao.findWaysWithinBoundingBox(bottomLeftNode, topRightNode, callback);
-}
-
-module.exports = App;
+module.exports = {
+    App: App,
+    Node: Dao.Node,
+    Way: Dao.Way,
+    Relation: Dao.Relation
+};

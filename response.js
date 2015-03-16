@@ -57,7 +57,7 @@ Response.prototype.send = function(message) {
             } else if(this.format === 'xml') {
                 console.log("generating xml");
                 contentType = "application/xml";
-                body = js2xmlparser('response', JSON.stringify(body));
+                body = js2xmlparser(body.type, JSON.stringify(body));
                 break;
             }
         default:

@@ -12,6 +12,5 @@ var App = require("./app");
 exports = module.exports = createApplication;
 
 function createApplication() {
-    var app = new App();
-    return app;
+    return App;
 }
