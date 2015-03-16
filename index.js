@@ -118,9 +118,9 @@ app.post("/test", function(req, resp) {
     resp.send("called post request handle on path: /test");
 })
 
-app.start(function(url) {
-    console.log("connected to server: " + url);
-    app.setUp(function() {
-        console.log("initialised application");
-    })
+app.setUp(function() {
+    console.log("initialised application");
+    app.start(function(url) {
+        console.log("connected to server: " + url);
+    });
 });

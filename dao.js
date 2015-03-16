@@ -12,7 +12,16 @@ var async = require('async');
 var Schema = mongoose.Schema,
 ObjectId = Schema.ObjectId;
 
-// Define a node schema
+/**
+ * Schema definitions
+ * ==================
+ **/
+ 
+/**
+ * Node
+ * Desc: represents a specific point on the earth's surface 
+ * defined by its latitude and longitude.
+ **/
 var nodeSchema = new Schema({
     longitude:  { type: Number, required: true, validate: validateLongitude },
     latitude:   { type: Number, required: true, validate: validateLatitude },
@@ -24,17 +33,20 @@ var nodeSchema = new Schema({
     created:    { type : Date, default: Date.now }
 });
 
+// node data validation functions
 nodeSchema.path('altitude').validate(function(value) {
     if(value === undefined) return true;
     return (value > -10000 && value < 9000);
 }, "Invalid alititude given, unless you're in space or the middle of the earth!");
 
 nodeSchema.path('heading').validate(function(value) {
+    // field is optional so allow undefined values
     if(value === undefined) return true;
     return (value >= 0 && value < 360);
 }, "Invalid heading give, value should be a degrees between 0 and 360");
 
 nodeSchema.path('accuracy').validate(function(value) {
+    // field is optional so allow undefined values
     if(value === undefined) return true;
     return (value > 0 && value <= 10);
 }, "Invalid accuracy given, please give a value between 1 and 10");
@@ -49,7 +61,10 @@ function validateLatitude(value) {
 
 var Node = mongoose.model('Node', nodeSchema);
 
-// Define a way schema
+/**
+ * Way
+ * Desc: A way is an ordered list of nodes that define a polyline
+ **/
 var waySchema = new Schema({
     nodes:  [{type: ObjectId,
               ref: 'Node'}],
@@ -61,6 +76,13 @@ var waySchema = new Schema({
 
 var Way = mongoose.model('Way', waySchema);
 
+
+/**
+ * Relation
+ * Desc: A relation is a multi-purpose data structure that documents 
+ * a relationship between two or more data elements (nodes, ways, 
+ * and/or other relations)
+ **/
 var relationSchema = new Schema({
     elements: [ {
         element: { type: ObjectId, ref: 'Elements' },
@@ -72,10 +94,21 @@ var relationSchema = new Schema({
 
 var Relation = mongoose.model('Relation', relationSchema);
 
+/**
+ * Define DAO methods
+ * ==================
+ **/
+
+/**
+ * Ctor
+ **/
 function Dao() {
     this.db = mongoose.connection;
 }
 
+/**
+ * Connect to data storage medium
+ **/
 Dao.prototype.connect = function(port, ip, cb) {
     
     var url = 'mongodb://' + ip +':' + port + '/test';
@@ -94,10 +127,16 @@ Dao.prototype.connect = function(port, ip, cb) {
     })
 }
 
+/**
+ * Disconnect from data storage medium
+ **/
 Dao.prototype.disconnect = function(cb) {
     mongoose.disconnect(cb);
 }
 
+/**
+ * Connection status check
+ **/
 Dao.prototype.isConnected = function() {
     if(this.db.readyState !== 2) {
         return false;
@@ -105,6 +144,9 @@ Dao.prototype.isConnected = function() {
     return true;
 }
 
+/**
+ * Create a node object
+ **/
 Dao.prototype.createNode = function() {
     var args = Array.prototype.slice.call(arguments);
     var callback = args.pop();
@@ -145,41 +187,59 @@ Dao.prototype.createNode = function() {
     }
 }
 
+/**
+ * Save a node
+ **/
 Dao.prototype.saveNode = function(node, callback) {
     node.save(function(err, results) {
-       if(err) return console.error(err);
+       if(err) throw err;
        callback(results);
     });
 }
 
+/**
+ * Delete a node
+ **/
 Dao.prototype.deleteNode = function(id, callback) {
     Node.remove({ _id: id }, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     })
 }
 
+/**
+ * Update an existing node
+ **/
 Dao.prototype.updateNode = function(id, update, opts, callback) {
     Node.update({_id : id}, {$set: update}, opts, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Find a node by id
+ **/
 Dao.prototype.findNodeById = function(id, callback) {
     Node.findById(id, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         return callback(results);
     });
 }
 
+/**
+ * Find a node by query
+ **/
 Dao.prototype.findNode = function(doc, callback) {
     Node.find(doc, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Find nodes within a radius of a source node
+ **/
 Dao.prototype.findNodesWithinRadiusOf = function(src, radius, callback) {
     var minLon = src.longitude - radius;
     var maxLon = src.longitude + radius;
@@ -193,6 +253,9 @@ Dao.prototype.findNodesWithinRadiusOf = function(src, radius, callback) {
     });
 }
 
+/**
+ * Find nodes within a given bounding box
+ **/
 Dao.prototype.findNodesWithinBoundingBox = function(bottomLeft, topRight, callback) {
     var minLon = bottomLeft.longitude;
     var maxLon = topRight.longitude;
@@ -206,13 +269,19 @@ Dao.prototype.findNodesWithinBoundingBox = function(bottomLeft, topRight, callba
     });
 }
 
+/**
+ * Clear all stored nodes
+ **/
 Dao.prototype.clearAllNodes = function(callback) {
     Node.remove({}, function(err) { 
-        if(err) return console.error(err);
+        if(err) throw err;
         callback();
     });
 }
 
+/**
+ * Create a way
+ **/
 Dao.prototype.createWay = function() {
     var args = Array.prototype.slice.call(arguments);
     var callback = args.pop();
@@ -238,41 +307,63 @@ Dao.prototype.createWay = function() {
     callback(way);
 }
 
+/**
+ * Save a way
+ **/
 Dao.prototype.saveWay = function(way, callback) {
     way.save(function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Delete a way
+ **/
 Dao.prototype.deleteWay = function(id, callback) {
     Way.remove({ _id: id }, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Update an existing way
+ **/
 Dao.prototype.updateWay = function(id, update, opts, callback) {
-    Way.update({_id : id}, {$set: update}, opts, function(err, results) {
-        if(err) return console.error(err);
-        callback(results);
-    });
+    try {
+        Way.update({_id : id}, {$set: update}, opts, function(err, results) {
+            if(err) throw err;
+            callback(results);
+        });
+    } catch(e) {
+        console.log(e);
+    }
 }
 
+/**
+ * Find a way by id
+ **/
 Dao.prototype.findWayById = function(id, callback) {
     Way.find({ _id: id }, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         return callback(results);
     });
 }
 
+/**
+ * Find a way by query
+ **/
 Dao.prototype.findWay = function(doc, callback) {
     Way.find(doc, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Find a way within a radius of a source way
+ **/
 Dao.prototype.findWaysWithinRadiusOf = function(src, radius, callback) {
     var minLon = src.longitude - radius;
     var maxLon = src.longitude + radius;
@@ -286,6 +377,9 @@ Dao.prototype.findWaysWithinRadiusOf = function(src, radius, callback) {
     });
 }
 
+/**
+ * Find a way within a given bound box
+ **/
 Dao.prototype.findWaysWithinBoundingBox = function(bottomLeft, topRight, callback) {
     var minLon = bottomLeft.longitude;
     var maxLon = topRight.longitude;
@@ -299,13 +393,19 @@ Dao.prototype.findWaysWithinBoundingBox = function(bottomLeft, topRight, callbac
     });
 }
 
+/**
+ * Clear all stored ways
+ **/
 Dao.prototype.clearAllWays = function(callback) {
     Way.remove({}, function(err) { 
-        if(err) return console.error(err);
+        if(err) throw err;
        callback();
     });
 }
 
+/**
+ * Create a relation
+ **/
 Dao.prototype.createRelation = function() {
     var args = Array.prototype.slice.call(arguments);
     var callback = args.pop();
@@ -321,48 +421,69 @@ Dao.prototype.createRelation = function() {
     callback(relation);
 }
 
+/**
+ * Save a relation
+ **/
 Dao.prototype.saveRelation = function(relation, callback) {
     relation.save(function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Delete a relation
+ **/
 Dao.prototype.deleteRelation = function(id, callback) {
     Relation.remove({ _id: id }, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Update an existing relation
+ **/
 Dao.prototype.updateRelation = function(id, update, opts, callback) {
     Relation.update({ _id : id }, {$set: update}, opts, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Find a relation by query
+ **/
 Dao.prototype.findRelation = function(doc, callback) {
     Relation.find(doc, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         callback(results);
     });
 }
 
+/**
+ * Find a relation by id
+ **/
 Dao.prototype.findRelationById = function(id, callback) {
     Relation.find( { _id: id }, function(err, results) {
-        if(err) return console.error(err);
+        if(err) throw err;
         return callback(results);
     });
 }
 
+/**
+ * Clear all stored relations
+ **/
 Dao.prototype.clearAllRelations = function(callback) {
     Relation.remove({}, function(err) { 
-        if(err) return console.error(err);
+        if(err) throw err;
        callback();
     });
 }
 
+/**
+ * Perform a map reduce operation on a model
+ **/
 Dao.prototype.mapReduce = function(o, model, callback) {
     if(model === "Node") {
         Node.mapReduce(o, callback);
@@ -373,15 +494,18 @@ Dao.prototype.mapReduce = function(o, model, callback) {
     }
 }
 
+/**
+ * Iterate through an invoke a function on a model
+ **/
 Dao.prototype.each = function(model, query, opts, func, callback) {
     var results = [];
     if(model === "Node") {
         Node.find(query, function(err, cursor) {
-            if(err) return console.error(err);
+            if(err) throw err;
             var docCount = cursor.length;
             console.log(cursor);
             cursor.forEach(function(error, doc) {
-                if(err) return console.error(err);
+                if(err) throw err;
                 results.push(func(doc));
                 docCount--;
                 if(docCount === 0) {
@@ -391,11 +515,11 @@ Dao.prototype.each = function(model, query, opts, func, callback) {
         });
     } else if(model === "Way") {
         Way.find(query, function(err, cursor) {
-            if(err) return console.error(err);
+            if(err) throw err;
             var docCount = cursor.length;
             console.log(cursor);
             cursor.forEach(function(error, doc) {
-                if(err) return console.error(err);
+                if(err) throw err;
                 results.push(func(doc));
                 docCount--;
                 if(docCount === 0) {
@@ -405,11 +529,11 @@ Dao.prototype.each = function(model, query, opts, func, callback) {
         });
     } else if(model === "Relation") {
         Relation.find(query, function(err, cursor) {
-            if(err) return console.error(err);
+            if(err) throw err;
             var docCount = cursor.length;
             console.log(cursor);
             cursor.forEach(function(error, doc) {
-                if(err) return console.error(err);
+                if(err) throw err;
                 results.push(func(doc));
                 docCount--;
                 if(docCount === 0) {

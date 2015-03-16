@@ -6,9 +6,15 @@
 // Dependencies
 var http = require("http");
 
+/**
+ * Ctor
+ **/
 var Server = function() {
 }
 
+/**
+ * Start the web server listening
+ **/
 Server.prototype.start = function(port, ip, callback) {
     
     if(typeof port === undefined) {
@@ -23,6 +29,9 @@ Server.prototype.start = function(port, ip, callback) {
     return this.server;
 }
 
+/**
+ * Stop the web server listening
+ **/
 Server.prototype.stop = function(callback) {
     this.server.close(function() {
         console.log("stopped http server");

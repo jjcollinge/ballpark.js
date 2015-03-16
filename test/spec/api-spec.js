@@ -111,7 +111,8 @@ app.put("/way", function(req, resp) {
     var update = {
         tags: tagz
     };
-    app.updateWay(id, update, function(result) {
+    var opts = {};
+    app.updateWay(id, update, opts, function(result) {
         resp.send(result);
     });
 });
@@ -148,7 +149,8 @@ app.put("/relation", function(req, resp) {
     var update = {
         tags: tagz
     };
-    app.updateRelation(id, update, function(result) {
+    var opts = {};
+    app.updateRelation(id, update, opts, function(result) {
         resp.send(result);
     });
 });
@@ -184,7 +186,6 @@ var counter = 0;
 app.start(function() {
     // API Test goes below here now that the app has been set!
     describe("Test Api", function() {
-
         // Setup connection before each test case
         beforeEach(function(done) {
             counter++;
@@ -276,7 +277,6 @@ app.start(function() {
             body.latitude = 20;
             body.longitude = 20;
             body.id = nodeId;
-            console.log("2");
             request({
                 method: "PUT",
                 uri: url,
@@ -354,7 +354,6 @@ app.start(function() {
 
         //#10
         it("should update a way", function(done) {
-            // temporary hack to bypass async nodeid update
             var url = "http://" + process.env.IP + ":" + process.env.PORT + "/way";
             var body = new Object();
             body.tags = [];
@@ -486,6 +485,17 @@ app.start(function() {
                 if (err) return console.error(err);
                 console.log(body);
                 expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+        
+        //#20
+        it("get node with bad id", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/node?id=fred";
+            request.get(url, function(err, res, body) {
+                if (err) return console.error(err);
+                console.log(body);
+                expect(res.statusCode).toBe(500);
                 done();
             });
         });
