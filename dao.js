@@ -326,7 +326,6 @@ relationSchema.statics.amend = function(id, update, options, callback) {
     });
 }
 
-
 relationSchema.statics.addMember = function(id, member, options, callback) {
     Relation.update({ _id: id }, { $push : {members: member} }, options, function(err, results) {
         if(err) throw err;
