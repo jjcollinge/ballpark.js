@@ -23,7 +23,8 @@ app.configure({
     'webserver_port': process.env.PORT,
     'database_address': process.env.IP,
     'database_port': 27017,
-    'api_root': '/api'
+    'api_root': '/api',
+    'read_only': false
 });
 
 app.get("/nodes", function(req, resp) {

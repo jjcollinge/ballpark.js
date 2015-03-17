@@ -24,7 +24,8 @@ function App() {
         'webserver_port': process.env.PORT,
         'database_address': process.env.IP,
         'database_port': 27017,
-        'api_root': '/api'
+        'api_root': '/api',
+        'read_only': true
     };
     this.ready = false;
 }
@@ -56,9 +57,15 @@ App.prototype.start = function(callback) {
         if(typeof handle !== "undefined") {
             handle = _this.handles[url_parse.pathname][req.method.toLowerCase()];
         } else {
-            response.statusCode(404).send({ status_code : 404, description : 'resource at given url doesn\'t exist'});
+            return response.statusCode(404).send({ status_code : 404, description : 'resource at given url doesn\'t exist'});
         }
 
+        if(_this.config['read_only']) {
+            if(req.method.toLowerCase() !== 'get') {
+                return response.statusCode(400).send({ status_code : 400, description : 'the API is read only and will only accept GET requests'});
+            }
+        }
+        
         // handle params
         if(req.method === 'GET') {
             // parse get parameters from url

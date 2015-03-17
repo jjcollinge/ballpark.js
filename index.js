@@ -15,7 +15,15 @@ var Relation = api.namespace.Relation;
  **/
  
 app.get("/", function(req, resp) {
-    resp.send("Hello World");
+    resp.send("<html>"+
+                "<head>"+
+                "</head>"+
+                "<body>"+
+                    "<h1>Ballpark.js API</h1>"+
+                    "<div id='nodeSection'>"+
+                    "</div>"+
+                "</body>"+
+             "</html>");
 })
 
 app.setUp(function() {
