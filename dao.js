@@ -248,6 +248,26 @@ waySchema.statics.mapReducer = function(map, reduce, callback) {
     });
 }
 
+waySchema.statics.getNestedNodes = function(id, callback) {
+    Way.find({ _id: id })
+    .lean()
+    .populate({ path: 'nodes' })
+    .exec(function(err, results) {
+        if(err) throw err;
+        callback(results);
+    });
+}
+
+waySchema.statics.getNestedWays = function(id, callback) {
+    Way.find({ _id: id })
+    .lean()
+    .populate({ path: 'ways' })
+    .exec(function(err, results) {
+        if(err) throw err;
+        callback(results);
+    });
+}
+
 var Way = mongoose.model('Way', waySchema);
 
 /**
@@ -304,9 +324,34 @@ relationSchema.statics.amend = function(id, update, options, callback) {
 
 
 relationSchema.statics.addMember = function(id, member, options, callback) {
-    Relation.update({ _id: id }, { $push : {members : member} }, options, function(err, results) {
+    Relation.update({ _id: id }, { $push : {members: member} }, options, function(err, results) {
         if(err) throw err;
         callback(results);
+    });
+}
+
+relationSchema.statics.removeMember = function(id, memberId, options, callback) {
+    Relation.update({ _id: id }, { $pull : {members: {_id: memberId }}}, options, function(err, results) {
+        if(err) throw err;
+        callback(results);
+    });
+}
+
+relationSchema.statics.getMembers = function(id, callback) {
+    Relation.find({ _id: id })
+    .lean()
+    .populate({ path: 'members' })
+    .exec(function(err, docs) {
+        if (err) throw err;
+        
+        var options = {
+            path: 'members._id',
+            model: 'Node'
+        };
+
+        Relation.populate(docs, options, function (err, results) {
+            callback(results);
+        });
     });
 }
 
