@@ -57,15 +57,30 @@ app.get("/node/xml", function(req, resp) {
 });
 
 app.post("/node", function(req, resp) {
+    // required
     var _location = [];
+    // optional
+    var _altitude = req.params.altitude;
+    var _accuracy = req.params.accuracy;
+    var _heading = req.params.heading;
+    var _speed = req.params.speed;
+    var _tags = req.params.tags;
+    
+    // parse location
     if(req.params.lat && req.params.lon) {
         _location = [Number(req.params.lon), Number(req.params.lat)];
     } else {
         _location = [Number(req.params['location[0]']), Number(req.params['location[1]'])];
     }
+    
     try {
         var newNode = new Node({
-            location: _location
+            location: _location,
+            altitude: _altitude,
+            accuracy: _accuracy,
+            heading: _heading,
+            speed: _speed,
+            tags: _tags
         });
         newNode.save(function(err, node) {
             if(err) 
@@ -120,7 +135,6 @@ app.get("/nodes/count", function(req, resp) {
         resp.send({ status_code: 500, payload: err.message});
     }
 });
-
 
 app.get("/nodes/countWithTag", function(req, resp) {
     var query = req.params;
@@ -180,7 +194,6 @@ app.post("/way", function(req, resp) {
         resp.send({ status_code: 500, payload: err.message});
     }
 });
-
 
 app.delete("/way", function(req, resp) {
     var id = req.params.id;

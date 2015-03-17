@@ -24,8 +24,13 @@ app.get("/", function(req, resp) {
                         "<form action='/api/node' method='post' id='nodeCreationForm'>" +
                               "Latitude:<br><input type='text' name='lat' required><br>" +
                               "Longitude:<br><input type='text' name='lon' required><br>" +
+                              "Altitude:<br><input type='text' name='altitude' required><br>" +
+                              "Accuracy:<br><input type='text' name='accuracy' required><br>" +
+                              "Heading:<br><input type='text' name='heading' required><br>" +
+                              "Speed:<br><input type='text' name='speed' required><br>" +
                               "<br>" +
                               "<textarea name='tags' placeholder='Comma separated tags'></textarea><br>"  +
+                              "<br>" +
                               "<input type='submit' value='Create'><br>" +
                         "</form>"+
                     "</div>"+
@@ -37,5 +42,26 @@ app.setUp(function() {
     console.log("initialised application");
     app.start(function(url) {
         console.log("connected to server: " + url);
+        generateData();
     });
 });
+
+function generateData() {
+    for(var i = 1; i <= 10; i++) {
+        var node = new Node({
+            location: [(Math.random()*180), Math.random()*90],
+        });
+        node.save(function(err, n) {
+            var way = new Way({
+                nodes: [n._id]
+            });
+            way.save(function(err, w) {
+                var relation = new Relation({
+                    members: [{ _id: w._id, type: 'way', role: 'inner' }],
+                });
+                relation.save(function(err, r) {
+                });
+            });
+        });
+    }
+}

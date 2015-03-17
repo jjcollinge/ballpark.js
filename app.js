@@ -45,6 +45,9 @@ App.prototype.start = function(callback) {
     var route = router.route;
     var _this = this;
     
+    /**
+     * Request listener defines the entry point routine for any HTTP requests
+     **/
     function requestListener(req, res) {
         
         var url_parse = url.parse(req.url, true);
@@ -186,10 +189,16 @@ App.prototype.delete = function(path, handle) {
     this.addHandle(path, 'delete', handle);
 }
 
+/**
+ * Clear all the data
+ **/
 App.prototype.clearData = function(callback) {
     this.dao.clearData(callback);
 }
 
+/**
+ * Check if object is an empty object
+ **/
 App.prototype.isEmpty = function(obj, callback) {
     return Object.keys(obj).length;
 }
