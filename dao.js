@@ -40,22 +40,26 @@ var nodeSchema = new Schema({
     type:       { type: String, default: 'node' }
 });
 
-// node data validation functions
+/* node data validation functions */
+
+// altitude in metres: 0 = sea level
 nodeSchema.path('altitude').validate(function(value) {
     if(value === undefined) return true;
     return (value > -10000 && value < 9000);
 }, "Invalid alititude given, unless you're in space or the middle of the earth!");
 
+// a top down angle indicating the nodes direction
 nodeSchema.path('heading').validate(function(value) {
     // field is optional so allow undefined values
     if(value === undefined) return true;
     return (value >= 0 && value < 360);
 }, "Invalid heading give, value should be a degrees between 0 and 360");
 
+// a accuracy radius in metres
 nodeSchema.path('accuracy').validate(function(value) {
     // field is optional so allow undefined values
     if(value === undefined) return true;
-    return (value > 0 && value <= 10);
+    return (value >= 0 && value <= 1000);
 }, "Invalid accuracy given, please give a value between 1 and 10");
 
 // function validateLongitude(value) {

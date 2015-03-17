@@ -57,14 +57,21 @@ app.get("/node/xml", function(req, resp) {
 });
 
 app.post("/node", function(req, resp) {
-    var _location = [Number(req.params['location[0]']), Number(req.params['location[1]'])];
+    var _location = [];
+    if(req.params.lat && req.params.lon) {
+        _location = [Number(req.params.lon), Number(req.params.lat)];
+    } else {
+        _location = [Number(req.params['location[0]']), Number(req.params['location[1]'])];
+    }
     try {
         var newNode = new Node({
             location: _location
         });
         newNode.save(function(err, node) {
-            if(err) throw err;
-            resp.send({ status_code: 200, payload: 'created new node with id ' + node._id });
+            if(err) 
+                resp.send({ status_code: 500, payload: 'failed to save node, likely a validation error'});
+            else
+                resp.send({ status_code: 200, payload: 'created new node with id ' + node._id });
         });
     } catch(err) {
         resp.send({ status_code: 500, payload: err.message});
@@ -164,8 +171,10 @@ app.post("/way", function(req, resp) {
         var newWay = new newWay({
         });
         newWay.save(function(err, way) {
-            if(err) throw err;
-            resp.send({ status_code: 200, payload: 'created new way with id ' + way._id });
+            if(err) 
+                resp.send({ status_code: 500, payload: 'failed to save way, likely a validation error'});
+            else
+                resp.send({ status_code: 200, payload: 'created new way with id ' + way._id });
         });
     } catch(err) {
         resp.send({ status_code: 500, payload: err.message});
@@ -388,8 +397,10 @@ app.post("/relation", function(req, resp) {
             tags: { name: 'district9' }
         });
         newRelation.save(function(err, relation) {
-            if(err) throw err;
-            resp.send({ status_code: 200, payload: 'created new relation with id ' + relation._id });
+            if(err)
+                resp.send({ status_code: 500, payload: 'failed to save relation, likely a validation error' });
+            else
+                resp.send({ status_code: 200, payload: 'created new relation with id ' + relation._id });
         });
     } catch(err) {
         resp.send({ status_code: 500, payload: err.message});
