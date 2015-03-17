@@ -1,13 +1,16 @@
 /**
- * The app is responsible for encapsulating all
- * the functionality of the middleware and offering
- * the client a single interface to use
+ * app.js
+ * ----------------------------
+ * Encapsulates all the framework
+ * data independant functionality
+ * such as; routing, configuration
+ * and request handling.
  */
 
 // Dependencies
 var Server = require('./server');
 var Response = require('./response');
-var Dao = require('./dao');
+var ns = require('./dao');
 var url = require("url");
 var router = require("./router");
 var querystring = require("querystring");
@@ -18,7 +21,7 @@ var querystring = require("querystring");
 function App() {
     this.server = new Server();
     this.handles = {};
-    this.dao = new Dao.Dao();
+    this.dao = new ns.Dao();
     this.config = {
         'webserver_address': process.env.IP,
         'webserver_port': process.env.PORT,
@@ -55,21 +58,29 @@ App.prototype.start = function(callback) {
         var response = new Response(res);
         req.params = [];
         
-        // grab the associated handle if it exists
+        /**
+         * Grab the handle for the request pathname and method
+         **/ 
         handle = _this.handles[url_parse.pathname];
         if(typeof handle !== "undefined") {
             handle = _this.handles[url_parse.pathname][req.method.toLowerCase()];
         } else {
+            // no handle exists so return error message
             return response.statusCode(404).send({ status_code : 404, description : 'resource at given url doesn\'t exist'});
         }
-
+        
+        /**
+         * Test configuration flags here
+         **/
         if(_this.config['read_only']) {
             if(req.method.toLowerCase() !== 'get') {
                 return response.statusCode(400).send({ status_code : 400, description : 'the API is read only and will only accept GET requests'});
             }
         }
         
-        // handle params
+        /**
+         * Parse parameters and invoke the route
+         **/ 
         if(req.method === 'GET') {
             // parse get parameters from url
             req.params = url_parse.query;
@@ -97,6 +108,9 @@ App.prototype.start = function(callback) {
         }
     }
     
+    /**
+     * Start the web server
+     **/
     this.server.start(this.config['webserver_port'], this.config['webserver_address'], requestListener);
     callback();
 }
@@ -147,9 +161,33 @@ function parsePut(req, callback) {
 }
 
 /**
- * This function will create/modify an individual handle.
+ * This function creates/modifies an individual handle.
  * It can facilitate multiple HTTP methods for a single
  * path.
+ * 
+ * NOTE: it would be better to define resource path which
+ * will then append the properties to dynamically create
+ * uris. For example:
+ *          /api/node is the resource path,
+ *          /location is the property path,
+ * 
+ * final path:  /api/node/location
+ * 
+ * route = {
+ *        resource: 'api/node',
+ *        properties: {
+ *            location: {
+ *                  get: [Function],
+ *                  put: [Function],
+ *                  delete: [Function],
+ *                  post: [Function]
+ *            }
+ *            ...
+ *       }
+ *   }
+ *   
+ * However, this is not within the scope of this project
+ * 
  **/
 App.prototype.addHandle= function(path, method, handle) {
     path = this.config.api_root + path;
@@ -205,7 +243,7 @@ App.prototype.isEmpty = function(obj, callback) {
 
 module.exports = {
     App: App,
-    Node: Dao.Node,
-    Way: Dao.Way,
-    Relation: Dao.Relation
+    Node: ns.Node,
+    Way: ns.Way,
+    Relation: ns.Relation
 };

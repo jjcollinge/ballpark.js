@@ -21,6 +21,7 @@ app.get("/", function(req, resp) {
                 "<body>"+
                     "<h1>Ballpark.js API</h1>"+
                     "<div id='nodeSection'>"+
+                        "<h2>Node Form</h2>" +
                         "<form action='/api/node' method='post' id='nodeCreationForm'>" +
                               "Latitude:<br><input type='text' name='lat' required><br>" +
                               "Longitude:<br><input type='text' name='lon' required><br>" +
@@ -47,7 +48,7 @@ app.setUp(function() {
 });
 
 function generateData() {
-    for(var i = 1; i <= 10; i++) {
+    for(var i = 1; i <= 5; i++) {
         var node = new Node({
             location: [(Math.random()*180), Math.random()*90],
         });

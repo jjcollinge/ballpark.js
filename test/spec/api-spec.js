@@ -301,7 +301,7 @@ app.start(function() {
         
         //#15
         it("should remove a way from a way", function(done) {
-            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/api/way/node";
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/api/way/way";
             var body = new Object();
             body.id = wayId;
             body.wayId = wayId;
@@ -413,7 +413,7 @@ app.start(function() {
         
         //#23
         it("should get relation by id", function(done) {
-            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/api/relations?id=" + relationId;
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/api/relation?id=" + relationId;
             request.get(url, function(err, res, body) {
                 if (err) return console.error(err);
                 console.log("Reponse: ");

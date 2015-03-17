@@ -359,3 +359,4 @@ describe("Test node dao", function() {
         });
     });
     
+});

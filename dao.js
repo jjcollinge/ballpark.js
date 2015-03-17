@@ -253,22 +253,21 @@ waySchema.statics.mapReducer = function(map, reduce, callback) {
 }
 
 waySchema.statics.getNestedNodes = function(id, callback) {
-    Way.find({ _id: id })
-    .lean()
+    Way.findOne({ _id: id })
     .populate({ path: 'nodes' })
     .exec(function(err, results) {
         if(err) throw err;
-        callback(results);
+        callback(results.nodes);
     });
 }
 
 waySchema.statics.getNestedWays = function(id, callback) {
-    Way.find({ _id: id })
+    Way.findOne({ _id: id })
     .lean()
     .populate({ path: 'ways' })
     .exec(function(err, results) {
         if(err) throw err;
-        callback(results);
+        callback(results.ways);
     });
 }
 

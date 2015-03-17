@@ -1,23 +1,26 @@
 /**
- * A mock API to demonstrate the framework
- **/
+ * api.js
+ * ----------------------------
+ * A mock RESTful API to demonstrate
+ * the framework in user. Should 
+ * establish routes for all data
+ * primitives and additional
+ * functionality.
+ */
 
 // Dependencies
 var ballpark = require('./ballpark');
 var namespace = ballpark();
 
-/**
- * Initialise the application and the RESTful API to test
- * ------------------------------------------------------
- * This included configuring the database and web server
- * addresses. Routes will be setup in a RESTful manner.
- **/
-
+// Extract namespace vars
 var app = new namespace.App();
 var Node = namespace.Node;
 var Way = namespace.Way;
 var Relation = namespace.Relation;
 
+/**
+ * Set the configuration for this API
+ **/
 app.configure({
     'webserver_address': process.env.IP,
     'webserver_port': process.env.PORT,
@@ -27,12 +30,18 @@ app.configure({
     'read_only': false
 });
 
+/**
+ * GET an array of all the available nodes
+ **/
 app.get("/nodes", function(req, resp) {
     Node.getAll(function(nodes) {
        resp.send(nodes);
    });
 });
 
+/**
+ * GET a specific node by id
+ **/
 app.get("/node", function(req, resp) {
     var id = req.params.id;
     try {
@@ -44,6 +53,9 @@ app.get("/node", function(req, resp) {
     }
 });
 
+/**
+ * GET a specific node by id in xml
+ **/
 app.get("/node/xml", function(req, resp) {
     var id = req.params.id;
     try {
@@ -56,6 +68,9 @@ app.get("/node/xml", function(req, resp) {
     }
 });
 
+/**
+ * POST data to construct a new node
+ **/
 app.post("/node", function(req, resp) {
     // required
     var _location = [];
@@ -93,6 +108,9 @@ app.post("/node", function(req, resp) {
     }
 });
 
+/**
+ * PUT location data into an exisitng node
+ **/
 app.put("/node/location", function(req, resp) {
     var id = req.params.id;
     var update = {
@@ -111,6 +129,9 @@ app.put("/node/location", function(req, resp) {
     }
 });
 
+/**
+ * DELETE a node by id
+ **/
 app.delete("/node", function(req, resp) {
     var id = req.params.id;
     try {
@@ -125,6 +146,9 @@ app.delete("/node", function(req, resp) {
     }
 });
 
+/**
+ * GET a count of nodes with a given query
+ **/
 app.get("/nodes/count", function(req, resp) {
     var query = req.params;
     try {
@@ -136,6 +160,9 @@ app.get("/nodes/count", function(req, resp) {
     }
 });
 
+/**
+ * GET a count of nodes with a given tag
+ **/
 app.get("/nodes/countWithTag", function(req, resp) {
     var query = req.params;
     try {
@@ -147,6 +174,9 @@ app.get("/nodes/countWithTag", function(req, resp) {
     }
 });
 
+/**
+ * GET nodes within a given distance of a point
+ **/
 app.get("/nodes/near", function(req, resp) {
     var lon = Number(req.params.lon);
     var lat = Number(req.params.lat);
@@ -163,12 +193,18 @@ app.get("/nodes/near", function(req, resp) {
     }
 })
 
+/**
+ * GET all existing ways
+ **/
 app.get("/ways", function(req, resp) {
    Way.getAll(function(ways) {
        resp.send(ways);
    });
 });
 
+/**
+ * GET a way by specific id
+ **/
 app.get("/way", function(req, resp) {
     var id = req.params.id;
     try {
@@ -180,6 +216,9 @@ app.get("/way", function(req, resp) {
     }
 });
 
+/**
+ * POST data to construct a new way
+ **/
 app.post("/way", function(req, resp) {
     try {
         var newWay = new newWay({
@@ -195,6 +234,9 @@ app.post("/way", function(req, resp) {
     }
 });
 
+/**
+ * DELETE a node by id
+ **/
 app.delete("/way", function(req, resp) {
     var id = req.params.id;
     try {
@@ -209,10 +251,13 @@ app.delete("/way", function(req, resp) {
     }
 });
 
+/**
+ * GET nodes nested in a way
+ **/
 app.get("/way/nodes", function(req, resp) {
     var id = req.params.id;
     try {
-        Way.getNestedWays(id, function(results) {
+        Way.getNestedNodes(id, function(results) {
             resp.send(results);
         });
     } catch(err) {
@@ -220,8 +265,10 @@ app.get("/way/nodes", function(req, resp) {
     }
 });
 
+/**
+ * PUT node data into an existing way
+ **/
 app.put("/way/node", function(req, resp) {
-    console.log("routed");
     var id = req.params.id;
     var nodeId = req.params.nodeId;
     var opts = {};
@@ -237,6 +284,9 @@ app.put("/way/node", function(req, resp) {
     }
 });
 
+/**
+ * DELETE a way's node
+ **/
 app.delete("/way/node", function(req, resp) {
     var id = req.params.id;
     var nodeId = req.params.nodeId;
@@ -253,6 +303,9 @@ app.delete("/way/node", function(req, resp) {
     }
 });
 
+/**
+ * GET a nested way from an existing way
+ **/
 app.get("/way/ways", function(req, resp) {
     var id = req.params.id;
     try {
@@ -264,6 +317,9 @@ app.get("/way/ways", function(req, resp) {
     }
 });
 
+/**
+ * PUT way data into an existing way
+ **/
 app.put("/way/way", function(req, resp) {
     var id = req.params.id;
     var wayId = req.params.wayId;
@@ -280,6 +336,9 @@ app.put("/way/way", function(req, resp) {
     }
 });
 
+/**
+ * DELETE a way's way
+ **/
 app.delete("/way/way", function(req, resp) {
     var id = req.params.id;
     var wayId = req.params.wayId;
@@ -296,6 +355,9 @@ app.delete("/way/way", function(req, resp) {
     }
 });
 
+/**
+ * PUT tag data into an existing way
+ **/
 app.put("/way/tags", function(req, resp) {
     var id = req.params.id;
     var tagz = req.params.tags;
@@ -315,6 +377,9 @@ app.put("/way/tags", function(req, resp) {
     }
 });
 
+/**
+ * GET the count of ways with a given query
+ **/
 app.get("/ways/count", function(req, resp) {
     var query = req.params;
     try {
@@ -326,6 +391,9 @@ app.get("/ways/count", function(req, resp) {
     }
 });
 
+/**
+ * GET the count of ways with a given tag
+ **/
 app.get("/ways/countWithTag", function(req, resp) {
     var query = req.params;
     try {
@@ -337,6 +405,9 @@ app.get("/ways/countWithTag", function(req, resp) {
     }
 });
 
+/**
+ * GET ways that contain a given node
+ **/
 app.get("/waysWithNode", function(req, resp) {
     var nodeId = req.params.nodeId;
     try {
@@ -348,6 +419,9 @@ app.get("/waysWithNode", function(req, resp) {
     }
 });
 
+/**
+ * GET a summary of the API
+ **/
 app.get("/summarise", function(req, resp) {
     var query = {};
     try {
@@ -371,6 +445,9 @@ app.get("/summarise", function(req, resp) {
     }
 });
 
+/**
+ * GET ways with speed limit tag
+ **/
 app.get("/speedlimits", function(req, resp) {
     try {
        Way.mapReducer(function() {
@@ -387,12 +464,18 @@ app.get("/speedlimits", function(req, resp) {
     }
 });
 
+/**
+ * GET all existing relations
+ **/
 app.get("/relations", function(req, resp) {
     Relation.getAll(function(ways) {
        resp.send(ways);
    });
 });
 
+/**
+ * GET a relation by id
+ **/
 app.get("/relation", function(req, resp) {
     var id = req.params.id;
     try {
@@ -404,6 +487,9 @@ app.get("/relation", function(req, resp) {
     }
 });
 
+/**
+ * POST the count of ways with this a given query
+ **/
 app.post("/relation", function(req, resp) {
     try {
         var newRelation = new Relation({
@@ -420,6 +506,9 @@ app.post("/relation", function(req, resp) {
     }
 });
 
+/**
+ * DELETE a relation by id
+ **/
 app.delete("/relation", function(req, resp) {
     var id = req.params.id;
     try {
@@ -434,6 +523,9 @@ app.delete("/relation", function(req, resp) {
     }
 });
 
+/**
+ * PUT tags data into existing relation
+ **/
 app.put("/relation/tags", function(req, resp) {
     var id = req.params.id;
     var tagz = req.params.tags;
@@ -453,6 +545,9 @@ app.put("/relation/tags", function(req, resp) {
     }
 });
 
+/**
+ * PUT member data into an existing relation
+ **/
 app.put("/relation/member", function(req, resp) {
     var id = req.params.id;
     var memberId = req.params.memberId;
@@ -469,6 +564,9 @@ app.put("/relation/member", function(req, resp) {
     }
 });
 
+/**
+ * DELETE a member from an existing relation
+ **/
 app.delete("/relation/member", function(req, resp) {
     var id = req.params.id;
     var memberId = req.params.memberId;
@@ -485,6 +583,9 @@ app.delete("/relation/member", function(req, resp) {
     }
 });
 
+/**
+ * GET members from an existing relation
+ **/
 app.get("/relation/members", function(req, resp) {
     var id = req.params.id;
     try {
