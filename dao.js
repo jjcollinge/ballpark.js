@@ -297,17 +297,22 @@ waySchema.statics.getNestedNodes = function(id, callback) {
     .populate({ path: 'nodes' })
     .exec(function(err, results) {
         if(err) throw err;
-        callback(results.nodes);
+        if(results)
+            callback(results.nodes);
+        else
+            callback([]);
     });
 }
 
 waySchema.statics.getNestedWays = function(id, callback) {
     Way.findOne({ _id: id })
-    .lean()
     .populate({ path: 'ways' })
     .exec(function(err, results) {
         if(err) throw err;
-        callback(results.ways);
+        if(results)
+            callback(results.ways);
+        else
+            callback([]);
     });
 }
 
@@ -400,7 +405,6 @@ relationSchema.statics.removeMember = function(id, memberId, options, callback) 
 
 relationSchema.statics.getMembers = function(id, callback) {
     Relation.find({ _id: id })
-    .lean()
     .populate({ path: 'members' })
     .exec(function(err, docs) {
         if (err) throw err;
