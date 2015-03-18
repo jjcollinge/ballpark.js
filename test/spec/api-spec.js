@@ -560,6 +560,18 @@ app.start(function() {
             });
         });
         
+        //#32
+        it("should get nodes near a given node", function(done) {
+            var url = "http://" + process.env.IP + ":" + process.env.PORT + "/api/nodes/near?id=" + nodeId;
+            request.get(url, function(err, res, body) {
+                if (err) return console.error(err);
+                console.log("Reponse: ");
+                console.dir(body);
+                expect(res.statusCode).toBe(200);
+                done();
+            });
+        });
+        
         //X-X-X
     });
 });

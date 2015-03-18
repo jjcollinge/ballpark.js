@@ -117,7 +117,7 @@ nodeSchema.statics.countWithTag = function(tag, callback) {
 }
 
 nodeSchema.statics.findNear = function(lon, lat, dist, callback) {
-
+    
     if(dist === undefined) dist = 100;
 
     // convert to radians
@@ -144,6 +144,18 @@ nodeSchema.statics.findNearWithDistance = function(lon, lat, dist, callback) {
         if(err) {console.error(err); throw err};
         callback(docs);
     });
+}
+
+nodeSchema.statics.findNearNode = function(id, dist, callback) {
+    
+    if(dist === undefined) dist = 100;
+
+    // convert to radians
+    dist = dist /= 6371;
+    
+    Node.getById(id, function(node) {
+        Node.findNear(node.location[0], node.location[1], dist, callback);
+    })
 }
 
 nodeSchema.statics.mapReducer = function(map, reduce, callback) {

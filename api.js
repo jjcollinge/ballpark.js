@@ -178,19 +178,37 @@ app.get("/nodes/countWithTag", function(req, resp) {
  * GET nodes within a given distance of a point
  **/
 app.get("/nodes/near", function(req, resp) {
-    var lon = req.params.lon;
-    var lat = req.params.lat;
-    var dis = req.params.dis;
-    try {
-        Node.findNear(lon,
-                      lat,
-                      dis,
-                      function(results) {
-                          resp.send(results);
-                      });
-    } catch(err) {
-        resp.send({ status_code: 500, payload: err.message});
+    
+    if(req.params.id) {
+        var id = req.params.id;
+        var dis = req.params.dis;
+        
+        try {
+            Node.findNearNode(id,
+                              dis,
+                              function(results) {
+                                  resp.send(results);
+                              });
+        } catch(err) {
+            resp.send({ status_code: 500, payload: err.message});
+        }
+    } else {
+        var lon = req.params.lon;
+        var lat = req.params.lat;
+        var dis = req.params.dis;
+        
+        try {
+            Node.findNear(lon,
+                          lat,
+                          dis,
+                          function(results) {
+                              resp.send(results);
+                          });
+        } catch(err) {
+            resp.send({ status_code: 500, payload: err.message});
+        }
     }
+   
 })
 
 /**
