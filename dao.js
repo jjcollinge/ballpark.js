@@ -1,8 +1,12 @@
 /**
- * The DAO wraps a MongoDB database and
- * allows the rest of the application to
- * perform persistent operations on their
- * data elements
+ * dao.js
+ * ----------------------------
+ * A data access object which
+ * wraps a MongoDB database and 
+ * uses mongoose as the driver.
+ * All data access, storage,
+ * construction and deletion will
+ * be handled here.
  */
 
 // Dependencies
@@ -27,7 +31,7 @@ var nodeSchema = new Schema({
     // latitude:   { type: Number, required: true, validate: validateLatitude },
     location: {
         type: [Number],  // [<longitude>, <latitude>]
-        index: '2d',      // create the geospatial index
+        index: '2d',     // create the geospatial index
         required: true
     },
     altitude:   { type: Number },
@@ -62,13 +66,9 @@ nodeSchema.path('accuracy').validate(function(value) {
     return (value >= 0 && value <= 1000);
 }, "Invalid accuracy given, please give a value between 1 and 10");
 
-// function validateLongitude(value) {
-//     return (value > -180 && value < 180);
-// }
-
-// function validateLatitude(value) {
-//     return (value > -90 && value < 90);
-// }
+/**
+ * NOTE: longitude and latitude will be validated by mongoose implicitly
+ **/
 
 // class methods
 
@@ -118,6 +118,8 @@ nodeSchema.statics.countWithTag = function(tag, callback) {
 
 nodeSchema.statics.findNear = function(lon, lat, dist, callback) {
 
+    if(dist === undefined) dist = 100;
+
     // convert to radians
     dist = dist /= 6371;
     
@@ -137,6 +139,13 @@ nodeSchema.statics.findNear = function(lon, lat, dist, callback) {
     });
 }
 
+nodeSchema.statics.findNearWithDistance = function(lon, lat, dist, callback) {
+    Node.collection.geoNear(lon, lat, {uniqueDocs:true, maxDistance: dist}, function(err, docs) {
+        if(err) {console.error(err); throw err};
+        callback(docs);
+    });
+}
+
 nodeSchema.statics.mapReducer = function(map, reduce, callback) {
     var o = {};
     o.map = map;
@@ -145,6 +154,25 @@ nodeSchema.statics.mapReducer = function(map, reduce, callback) {
         if(err) throw err;
         callback(err, results);
     });
+}
+
+nodeSchema.statics.findWhere = function(key, value, callback) {
+    Node.find({})
+        .where(key)
+        .equals(value)
+        .exec(callback);
+}
+
+nodeSchema.statics.findMax = function(property, callback) {
+    Node.findOne({})
+        .sort('-'+property)
+        .exec(callback);
+}
+
+nodeSchema.statics.findMin = function(property, callback) {
+    Node.findOne({})
+        .sort(property)
+        .exec(callback);
 }
 
 var Node = mongoose.model('Node', nodeSchema);
@@ -271,6 +299,25 @@ waySchema.statics.getNestedWays = function(id, callback) {
     });
 }
 
+waySchema.statics.findWhere = function(key, value, callback) {
+    Way.find({})
+        .where(key)
+        .equals(value)
+        .exec(callback);
+}
+
+waySchema.statics.findMax = function(property, callback) {
+    Way.findOne({})
+        .sort('-'+property)
+        .exec(callback);
+}
+
+waySchema.statics.findMin = function(property, callback) {
+    Way.findOne({})
+        .sort(property)
+        .exec(callback);
+}
+
 var Way = mongoose.model('Way', waySchema);
 
 /**
@@ -355,6 +402,13 @@ relationSchema.statics.getMembers = function(id, callback) {
             callback(results);
         });
     });
+}
+
+relationSchema.statics.findWhere = function(key, value, callback) {
+    Relation.find({})
+        .where(key)
+        .equals(value)
+        .exec(callback);
 }
 
 var Relation = mongoose.model('Relation', relationSchema);

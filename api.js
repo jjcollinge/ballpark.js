@@ -13,7 +13,7 @@ var ballpark = require('./ballpark');
 var namespace = ballpark();
 
 // Extract namespace vars
-var app = new namespace.App();
+var app = namespace.app;
 var Node = namespace.Node;
 var Way = namespace.Way;
 var Relation = namespace.Relation;
@@ -178,9 +178,9 @@ app.get("/nodes/countWithTag", function(req, resp) {
  * GET nodes within a given distance of a point
  **/
 app.get("/nodes/near", function(req, resp) {
-    var lon = Number(req.params.lon);
-    var lat = Number(req.params.lat);
-    var dis = Number(req.params.dis);
+    var lon = req.params.lon;
+    var lat = req.params.lat;
+    var dis = req.params.dis;
     try {
         Node.findNear(lon,
                       lat,
@@ -599,5 +599,7 @@ app.get("/relation/members", function(req, resp) {
 
 module.exports = {
     app: app,
-    namespace: namespace
+    Node: Node,
+    Way: Way,
+    Relation: Relation
 }

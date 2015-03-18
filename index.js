@@ -1,12 +1,19 @@
+/**
+ * index.js
+ * ----------------------------
+ * A mock browser friendly interface
+ * to domenstrate the framework.
+ */
+
 // Dependencies
 var api = require("./api");
 var request = require("request");
 
 // initialise types
 var app = api.app;
-var Node = api.namespace.Node;
-var Way = api.namespace.Way;
-var Relation = api.namespace.Relation;
+var Node = api.Node;
+var Way = api.Way;
+var Relation = api.Relation;
 
 /**
  * Define additional routes required for browser consumption
@@ -39,6 +46,9 @@ app.get("/", function(req, resp) {
              "</html>");
 })
 
+/**
+ * Start the web server
+ **/
 app.setUp(function() {
     console.log("initialised application");
     app.start(function(url) {
@@ -47,6 +57,9 @@ app.setUp(function() {
     });
 });
 
+/**
+ * Generate example data
+ **/
 function generateData() {
     for(var i = 1; i <= 5; i++) {
         var node = new Node({

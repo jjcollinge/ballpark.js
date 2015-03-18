@@ -1,16 +1,23 @@
 /**
- * The ballpark js is the main entry
- * point for the system. This will act as
- * a facade to expose the middleware 
- * components to the client in a controlled
- * manner.
+ * ballpark.js
+ * ----------------------------
+ * Main entry point for the framework.
+ * Packages singletons and model into
+ * a single export for use by the 
+ * developer
  */
  
 // Dependencies
-var App = require("./app");
+var app = require("./app");
+var dao = require("./dao");
 
 exports = module.exports = createApplication;
 
 function createApplication() {
-    return App;
+    return {
+        app: app.getInstance(),
+        Node: dao.Node,
+        Way: dao.Way,
+        Relation: dao.Relation
+    };
 }

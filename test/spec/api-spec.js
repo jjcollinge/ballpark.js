@@ -1,12 +1,19 @@
+/**
+ * api-spec.js
+ * ----------------------------
+ * A test suite for testing the
+ * established api example
+ */
+
 // Dependencies
 var api = require("../../api");
 var request = require("request");
 
 // initialise types
 var app = api.app;
-var Node = api.namespace.Node;
-var Way = api.namespace.Way;
-var Relation = api.namespace.Relation;
+var Node = api.Node;
+var Way = api.Way;
+var Relation = api.Relation;
 
 /**
  * Define the test specification to test the RESTful API.

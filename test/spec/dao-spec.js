@@ -359,4 +359,20 @@ describe("Test node dao", function() {
         });
     });
     
+    it("find near node with distance", function() {
+        // test case vars
+        var callback = false;
+        var result = null;
+        Node.findNearWithDistance(0, 0, 1000, function(data) {
+            result = data;
+            callback = true;
+        });
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        runs(function() {
+            expect(result.results[0].dis).toBe(82.22731053715802);
+        });
+    });
+    
 });
