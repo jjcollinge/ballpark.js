@@ -209,7 +209,6 @@ var App = (function() {
                     callback();
                 });
             },
-    
             
             /**
              * Public: Create a route for a HTTP GET request on a given path

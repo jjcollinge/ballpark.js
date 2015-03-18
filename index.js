@@ -51,9 +51,11 @@ app.get("/", function(req, resp) {
  **/
 app.setUp(function() {
     console.log("initialised application");
-    app.start(function(url) {
-        console.log("connected to server: " + url);
-        generateData();
+    app.clearData(function() {
+        app.start(function(url) {
+            console.log("connected to server: " + url);
+            generateData();
+        });
     });
 });
 
@@ -62,6 +64,7 @@ app.setUp(function() {
  **/
 function generateData() {
     for(var i = 1; i <= 5; i++) {
+        var nId;
         var node = new Node({
             location: [(Math.random()*180), Math.random()*90],
         });
@@ -69,9 +72,12 @@ function generateData() {
             var way = new Way({
                 nodes: [n._id]
             });
+            nId = n._id;
             way.save(function(err, w) {
+                console.log(nId);
                 var relation = new Relation({
-                    members: [{ _id: w._id, type: 'way', role: 'inner' }],
+                    members: [{ _id: w._id, type: 'way', role: 'area' },
+                              { _id: nId, type: 'node', role: 'point' }],
                 });
                 relation.save(function(err, r) {
                 });
