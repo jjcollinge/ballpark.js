@@ -1,4 +1,6 @@
 /**
+ * response.js
+ * ----------------------------
  * The response wraps the standard http
  * response object and allows the framework
  * to add additional behaviour & data.
@@ -66,6 +68,8 @@ Response.prototype.send = function(message) {
             this.response.statusCode = 500;
             body = JSON.stringify({ status_code: 500, description: 'unsupported content-type'}, null, 2);
     }
+    
+    // compile the response and send
     this.response.writeHead(this.response.statusCode, {"Content-Type": contentType });
     this.response.write(body);
     this.response.end();

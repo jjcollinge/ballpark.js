@@ -1,6 +1,8 @@
 /**
- * The server is responsible for handling
- * the http or https connection
+ * server.js
+ * ----------------------------
+ * Responsible for encapsulating
+ * the web server.
  */
 
 // Dependencies

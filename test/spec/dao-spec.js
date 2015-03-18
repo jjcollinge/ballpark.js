@@ -1,5 +1,8 @@
 /**
- * Test data access object
+ * dao-spec.js
+ * ----------------------------
+ * A test suite to test the
+ * data access object.
  */
  
 // Dependencies
