@@ -378,4 +378,21 @@ describe("Test node dao", function() {
         });
     });
     
+     it("find node where key is value", function() {
+        // test case vars
+        var callback = false;
+        var result = null;
+        Node.findWhere('_id', nodeId, function(err, data) {
+            result = data;
+            console.log(data);
+            callback = true;
+        });
+        waitsFor(function() {
+            return callback;
+        }, "callback should have been invoked");
+        runs(function() {
+            expect(result).toBeDefined();
+        });
+    });
+    
 });

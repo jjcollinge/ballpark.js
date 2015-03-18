@@ -74,7 +74,6 @@ function generateData() {
             });
             nId = n._id;
             way.save(function(err, w) {
-                console.log(nId);
                 var relation = new Relation({
                     members: [{ _id: w._id, type: 'way', role: 'area' },
                               { _id: nId, type: 'node', role: 'point' }],
